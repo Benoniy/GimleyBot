@@ -22,5 +22,16 @@ async def on_message(message):
 
 #---[ Bot Commands ]---
 
+@client.command(
+                #Help
+                name='help',
+                description="Provides help to user.",
+                brief="Prints help menu",
+                aliases=['h', '!'],
+                pass_context=False
+                )
+async def help():
+    await client.say("Hi I'm stock-image-bot")
+
 #---[ Run Bot ]---
 client.run(TOKEN)
