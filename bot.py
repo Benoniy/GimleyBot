@@ -4,13 +4,13 @@ A discord bot written in Python for StockImageSharks & N0ICE
 '''
 
 import discord
-from discord.ext.commands import Bot
 
-#---[ Bot Setup ]---
+# ---[ Bot Setup ]---
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3nFgQ.mYtDdynguWacx2k81xmh9wj27Ww"
-BOT_PREFIX = '}'
+BOT_PREFIX = "}"
 
 client = discord.Client()
+
 
 @client.event
 async def on_message(message):
@@ -18,11 +18,11 @@ async def on_message(message):
     # Bot should not reply to itself
     if message.author != client.user:
         # Check what command was and call appropriate function
-        if message.content == BOT_PREFIX + "hello":
+        if BOT_PREFIX + "hello" in message.content:
             await message.channel.send("working")
 
 
-#---[ Bot Commands ]---
+# ---[ Bot Commands ]---
 
-#---[ Run Bot ]---
+# ---[ Run Bot ]---
 client.run(TOKEN)
