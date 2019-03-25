@@ -14,6 +14,12 @@ client = discord.Client()
 
 
 @client.event
+async def on_member_join(member):
+    role = discord.utils.get(member.server.roles, name="Noobies")
+    await client.add_roles(member, role)
+
+
+@client.event
 async def on_message(message):
     print(message.content)
     message_content = message.content.upper()
@@ -63,21 +69,45 @@ async def roll_dice(message, amount, size):
 async def role_assign(message):
     message_content = message.content.upper()
     arg_list = message_content.split()
-    if arg_list[1] == "18+":
-        if "18-" in [y.name.lower() for y in message.author.roles]:
-            role = discord.utils.get(message.server.roles, name="18-")
-            await client.remove_roles(message.author, role)
+    print(message.channel)
+    if message.channel.name == "server_guidelines":
+        temp_role = discord.utils.get(message.server.roles, name="Temp Members")
+        if arg_list[1] == "18+":
+            if "18-" in [y.name.lower() for y in message.author.roles]:
+                role = discord.utils.get(message.server.roles, name="18-")
+                await client.remove_roles(message.author, role)
 
-        role = discord.utils.get(message.server.roles, name="18+")
-        await client.add_roles(message.author, role)
-        await client.send_message(message.channel, "Over 18")
-    elif arg_list[1] == "18-":
-        if "18+" in [y.name.lower() for y in message.author.roles]:
             role = discord.utils.get(message.server.roles, name="18+")
-            await client.remove_roles(message.author, role)
-        role = discord.utils.get(message.server.roles, name="18-")
-        await client.add_roles(message.author, role)
-        await client.send_message(message.channel, "Under 18")
+            await client.add_roles(message.author, role)
+            await client.send_message(message.channel, "Over 18")
+        elif arg_list[1] == "18-":
+            if "18+" in [y.name.lower() for y in message.author.roles]:
+                role = discord.utils.get(message.server.roles, name="18+")
+                await client.remove_roles(message.author, role)
+            role = discord.utils.get(message.server.roles, name="18-")
+            await client.add_roles(message.author, role)
+            await client.send_message(message.channel, "Under 18")
+
+        await client.remove_roles(message.author, discord.utils.get(message.server.roles, name="Noobies"))
+        await client.add_roles(message.author, temp_role)
+        await delete_all_but_one(message)
+
+
+def is_me(m):
+    return m.author == client.user
+
+
+def is_admin(message):
+    if "ze moderators" in [y.name.lower() for y in message.author.roles]:
+        return False
+    else:
+        return True
+
+
+async def delete_all_but_one(message):
+    if message.channel.name == "server_guidelines":
+        await client.purge_from(message.channel, limit=100, check=is_admin)
+
 
 
 # ---[ Run Bot ]---
