@@ -4,7 +4,6 @@ A discord bot written in Python for StockImageSharks & N0ICE
 '''
 
 import discord
-import discord.client
 import random
 
 # ---[ Bot Setup ]---
