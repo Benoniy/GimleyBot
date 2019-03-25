@@ -7,7 +7,7 @@ import discord
 from discord.ext.commands import Bot
 
 #---[ Bot Setup ]---
-TOKEN = ''
+TOKEN = "EkjvWn3NWNpN3OmwwfbPN0TP6K-kk89W"
 BOT_PREFIX = ''
 
 client = discord.Client()
