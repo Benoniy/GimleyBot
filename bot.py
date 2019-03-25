@@ -4,10 +4,11 @@ A discord bot written in Python for StockImageSharks & N0ICE
 '''
 
 import discord
+import discord.client
 import random
 
 # ---[ Bot Setup ]---
-TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3nFgQ.mYtDdynguWacx2k81xmh9wj27Ww"
+TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3p31A.DF-0TaxP_5RiCEQ5547IcCjMt9o"
 BOT_PREFIX = "}"
 
 client = discord.Client()
@@ -22,7 +23,7 @@ async def on_message(message):
 
         # Check what command was and call appropriate function
         if BOT_PREFIX + "HELLO" in message_content:
-            await message.channel.send("working")
+            await client.send_message(message.channel, "working")
 
         # Roll dice
         elif BOT_PREFIX + "ROLL" in message_content:
@@ -36,9 +37,18 @@ async def on_message(message):
         elif BOT_PREFIX + "FLIP" in message_content:
             flip = random.randint(1, 3)
             if flip == 1:
-                await message.channel.send("Heads")
+                await client.send_message(message.channel, "Heads")
             else:
-                await message.channel.send("Tails")
+                await client.send_message(message.channel, "Tails")
+
+        elif BOT_PREFIX + "IAM" in message_content:
+            argList = message_content.split()
+            if argList[1] == "18+":
+                role = discord.utils.get(message.server.roles, name="18+")
+                await client.add_roles(message.author, role)
+                await client.send_message(message.channel, "Over 18")
+            elif argList[1] == "18-":
+                await  message.channel.send("Under 18")
 
 
 # ---[ Bot Commands ]---
@@ -54,7 +64,7 @@ async def rollDice(message, amount, size):
 
     for x in range(amount):
         i = random.randint(1, size)
-        await message.channel.send(i)
+        await client.send_message(message.channel, i)
 
 
 # ---[ Run Bot ]---
