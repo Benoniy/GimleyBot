@@ -15,11 +15,13 @@ client = discord.Client()
 @client.event
 async def on_message(message):
     print(message.content)
+    message_content = message.content.upper()
     # Bot should not reply to itself
     if message.author != client.user:
         # Check what command was and call appropriate function
-        if BOT_PREFIX + "hello" in message.content:
+        if BOT_PREFIX + "HELLO" in message_content:
             await message.channel.send("working")
+
 
 
 # ---[ Bot Commands ]---
