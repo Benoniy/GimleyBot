@@ -29,7 +29,7 @@ async def on_message(message):
         elif BOT_PREFIX + "ROLL" in message_content:
             try:
                 argList = message_content.split()
-                await rollDice(message, argList[1], argList[2])
+                await roll_dice(message, argList[1], argList[2])
             except:
                 print("Error rolling dice")
 
@@ -42,18 +42,12 @@ async def on_message(message):
                 await client.send_message(message.channel, "Tails")
 
         elif BOT_PREFIX + "IAM" in message_content:
-            argList = message_content.split()
-            if argList[1] == "18+":
-                role = discord.utils.get(message.server.roles, name="18+")
-                await client.add_roles(message.author, role)
-                await client.send_message(message.channel, "Over 18")
-            elif argList[1] == "18-":
-                await  message.channel.send("Under 18")
+            await role_assign(message)
 
 
 # ---[ Bot Commands ]---
 
-async def rollDice(message, amount, size):
+async def roll_dice(message, amount, size):
     amount = int(amount)
     size = int(size)
 
@@ -65,6 +59,26 @@ async def rollDice(message, amount, size):
     for x in range(amount):
         i = random.randint(1, size)
         await client.send_message(message.channel, i)
+
+
+async def role_assign(message):
+    message_content = message.content.upper()
+    arg_list = message_content.split()
+    if arg_list[1] == "18+":
+        if "18-" in [y.name.lower() for y in message.author.roles]:
+            role = discord.utils.get(message.server.roles, name="18-")
+            await client.remove_roles(message.author, role)
+
+        role = discord.utils.get(message.server.roles, name="18+")
+        await client.add_roles(message.author, role)
+        await client.send_message(message.channel, "Over 18")
+    elif arg_list[1] == "18-":
+        if "18+" in [y.name.lower() for y in message.author.roles]:
+            role = discord.utils.get(message.server.roles, name="18+")
+            await client.remove_roles(message.author, role)
+        role = discord.utils.get(message.server.roles, name="18-")
+        await client.add_roles(message.author, role)
+        await client.send_message(message.channel, "Under 18")
 
 
 # ---[ Run Bot ]---
