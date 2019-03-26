@@ -52,8 +52,12 @@ async def on_message(message):
         elif "ROLL" in arg_list[0]:
             try:
                 await roll_dice(message, arg_list[1], arg_list[2])
-            except:
-                print("Error rolling dice")
+            except IndexError:
+                await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
+                print("Error rolling dice, not enough args")
+            except ValueError:
+                await client.send_message(message.channel, "Command can only accept numbers as arguments!")
+                print("Error rolling dice, type error")
 
         # Flip a coin
         elif "FLIP" in arg_list[0]:
@@ -71,9 +75,17 @@ async def on_message(message):
         elif "HELP" in arg_list[0]:
             await send_help(message)
 
+        elif "TEAMS" in arg_list[0]:
+            await team_gen(message, arg_list)
+
 
 # ---[ Bot Commands ]---
 # Prints out the bot help
+
+
+def team_gen(message, arg_list):
+    print("ok")
+
 
 async def send_help(message):
     await client.send_message(message.channel, "}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
