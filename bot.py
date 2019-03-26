@@ -85,6 +85,17 @@ async def on_message(message):
                 await client.send_message(message.channel, "First argument can only be a number!")
                 print("Error creating teams, type error")
 
+        elif "ADMIN_PURGE" in arg_list[0]:
+            if "ze moderators" in [y.name.lower() for y in message.author.roles]:
+                try:
+                    await purge_amount(message, arg_list[1])
+                except IndexError:
+                    await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
+                    print("Error purging, not enough args")
+                except ValueError:
+                    await client.send_message(message.channel, "Argument can only be a number!")
+                    print("Error purging, type error")
+
 
 # ---[ Bot Commands ]---
 # Prints out the bot help
@@ -159,7 +170,8 @@ async def role_assign(message, arg_list):
             await client.send_message(message.channel, "Under 18")
 
         # Remove noob role and add to temp members
-        await client.remove_roles(message.author, discord.utils.get(message.server.roles, name="Noobies"))
+        noob_role = discord.utils.get(message.server.roles, name="Noobies")
+        await client.remove_roles(message.author, noob_role)
         await client.add_roles(message.author, temp_role)
         await purge_non_admin(message)
 
@@ -182,6 +194,9 @@ async def purge_non_admin(message):
     if message.channel.name == "server_guidelines":
         await client.purge_from(message.channel, limit=100, check=is_admin)
 
+
+async def purge_amount(message, limit):
+    await client.purge_from(message.channel, limit=int(limit) + 1)
 
 # ---[ Run Bot ]---
 client.run(TOKEN)
