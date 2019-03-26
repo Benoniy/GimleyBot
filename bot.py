@@ -113,7 +113,8 @@ async def team_gen(message, arg_list):
 
 async def send_help(message):
     await client.send_message(message.channel, "}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
-                                               "sized dice\n}flip - Flips a coin")
+                                               "sized dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
+                                               "randomised teams containing any amount of users")
 
 
 # Roles x amount of y sized dice
