@@ -76,15 +76,39 @@ async def on_message(message):
             await send_help(message)
 
         elif "TEAMS" in arg_list[0]:
-            await team_gen(message, arg_list)
+            try:
+                await team_gen(message, arg_list)
+            except IndexError:
+                await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
+                print("Error creating teams, not enough args")
+            except ValueError:
+                await client.send_message(message.channel, "First argument can only be a number!")
+                print("Error creating teams, type error")
 
 
 # ---[ Bot Commands ]---
 # Prints out the bot help
 
 
-def team_gen(message, arg_list):
-    print("ok")
+async def team_gen(message, arg_list):
+    orig_list = []
+    for x in range(int(arg_list[1])):
+        orig_list.append(x + 1)
+
+    list_temp = orig_list.copy()
+    length_team = len(list_temp)
+    length_args = len(arg_list) - 2
+    pos = 2
+
+    for x in range(length_args):
+        i = random.randint(0, length_team - 1)
+        await client.send_message(message.channel, str(arg_list[pos]) + " is on team " + str(list_temp[i]))
+        list_temp.remove(list_temp[i])
+        if not list_temp:
+            list_temp = orig_list.copy()
+
+        length_team = len(list_temp)
+        pos = pos + 1
 
 
 async def send_help(message):
