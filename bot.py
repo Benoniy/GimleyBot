@@ -26,27 +26,30 @@ async def on_member_join(member):
     print("New member has joined")
 
 
+# Happens whenever a message
 @client.event
 async def on_message(message):
-    print(message.content)
-    message_content = message.content.upper()
-    # Bot should not reply to itself
-    if message.author != client.user:
+
+    # Bot should not reply to itself and use the prefix
+    if message.author != client.user and BOT_PREFIX in message.content:
+        message_content = message.content.upper()
+        arg_list = message_content.split()
+        print(message_content)
 
         # Check what command was and call appropriate function
-        if BOT_PREFIX + "STATUS" in message_content:
+        if "STATUS" in arg_list[0]:
             await client.send_message(message.channel, "working")
+            print("Printing status")
 
         # Roll dice
-        elif BOT_PREFIX + "ROLL" in message_content:
+        elif "ROLL" in arg_list[0]:
             try:
-                argList = message_content.split()
-                await roll_dice(message, argList[1], argList[2])
+                await roll_dice(message, arg_list[1], arg_list[2])
             except:
                 print("Error rolling dice")
 
         # Flip a coin
-        elif BOT_PREFIX + "FLIP" in message_content:
+        elif "FLIP" in arg_list[0]:
             flip = random.randint(1, 3)
             if flip == 1:
                 await client.send_message(message.channel, "Heads")
@@ -55,12 +58,12 @@ async def on_message(message):
                 await client.send_message(message.channel, "Tails")
                 print("Tails")
 
-        elif BOT_PREFIX + "IAM" in message_content:
-            await role_assign(message)
+        elif "IAM" in arg_list[0]:
+            await role_assign(message, arg_list)
 
 
 # ---[ Bot Commands ]---
-
+# Roles x amount of y sized dice
 async def roll_dice(message, amount, size):
     amount = int(amount)
     size = int(size)
@@ -76,9 +79,7 @@ async def roll_dice(message, amount, size):
         print("Rolled " + i)
 
 
-async def role_assign(message):
-    message_content = message.content.upper()
-    arg_list = message_content.split()
+async def role_assign(message, arg_list):
 
     # Only happens in server_guidelines
     if message.channel.name == "server_guidelines":
