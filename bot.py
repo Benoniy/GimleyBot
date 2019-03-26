@@ -7,8 +7,8 @@ import discord
 import random
 
 # ---[ Bot Setup ]---
-TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3sF6Q.qvjkdo2fWCFLYyLuMyKyKVcHpqA"
-BOT_PREFIX = "{"
+TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
+BOT_PREFIX = "}"
 
 client = discord.Client()
 
