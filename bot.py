@@ -61,12 +61,16 @@ async def on_message(message):
         elif "IAM" in arg_list[0]:
             await role_assign(message, arg_list)
 
+        elif "HELP" in arg_list[0]:
+            await send_help(message)
+
 
 # ---[ Bot Commands ]---
 # Prints out the bot help
+
 async def send_help(message):
-    client.send_message(message.channel, "}status - Shows the status of the bot\n}roll x y - Roles x amount of y sized dice"
-                                         "\n}flip - Flips a coin")
+    await client.send_message(message.channel, "}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
+                                               "sized dice\n}flip - Flips a coin")
 
 
 # Roles x amount of y sized dice
