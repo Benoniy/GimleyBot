@@ -7,7 +7,7 @@ import discord
 import random
 
 # ---[ Bot Setup ]---
-TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3p31A.DF-0TaxP_5RiCEQ5547IcCjMt9o"
+TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3sF6Q.qvjkdo2fWCFLYyLuMyKyKVcHpqA"
 BOT_PREFIX = "}"
 
 client = discord.Client()
@@ -27,7 +27,7 @@ async def on_message(message):
     if message.author != client.user:
 
         # Check what command was and call appropriate function
-        if BOT_PREFIX + "HELLO" in message_content:
+        if BOT_PREFIX + "STATUS" in message_content:
             await client.send_message(message.channel, "working")
 
         # Roll dice
