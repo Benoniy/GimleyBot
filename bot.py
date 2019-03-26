@@ -72,9 +72,6 @@ async def on_message(message):
         elif "IAM" in arg_list[0]:
             await role_assign(message, arg_list)
 
-        elif "HELP" in arg_list[0]:
-            await send_help(message)
-
         elif "TEAMS" in arg_list[0]:
             try:
                 await team_gen(message, arg_list)
@@ -84,6 +81,13 @@ async def on_message(message):
             except ValueError:
                 await client.send_message(message.channel, "First argument can only be a number!")
                 print("Error creating teams, type error")
+
+        elif "ADMIN_HELP" in arg_list[0]:
+            if "ze moderators" in [y.name.lower() for y in message.author.roles]:
+                await send_admin_help(message)
+
+        elif "HELP" in arg_list[0]:
+            await send_help(message)
 
         elif "ADMIN_PURGE" in arg_list[0]:
             if "ze moderators" in [y.name.lower() for y in message.author.roles]:
@@ -126,6 +130,10 @@ async def send_help(message):
     await client.send_message(message.channel, "}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
                                                "sized dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
                                                "randomised teams containing any amount of users")
+
+
+async def send_admin_help(message):
+    await client.send_message(message.channel, "}admin_purge x - deletes x amount of messages from the current chat and then the command")
 
 
 # Roles x amount of y sized dice
