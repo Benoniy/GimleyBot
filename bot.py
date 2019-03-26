@@ -7,8 +7,15 @@ import discord
 import random
 
 # ---[ Bot Setup ]---
+'''
+# Actual bot token
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
+'''
+
+# Testing bot token
+TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
+BOT_PREFIX = "{"
 
 client = discord.Client()
 
