@@ -5,6 +5,7 @@ A discord bot written in Python for StockImageSharks & N0ICE
 
 import discord
 import random
+import math
 
 # ---[ Bot Setup ]---
 '''
@@ -44,12 +45,12 @@ async def on_message(message):
         print(message_content)
 
         # Check what command was and call appropriate function
-        if "STATUS" in arg_list[0]:
+        if arg_list[0] == BOT_PREFIX + "STATUS" :
             await client.send_message(message.channel, "working")
             print("Printing status")
 
         # Roll dice
-        elif "ROLL" in arg_list[0]:
+        elif arg_list[0] == BOT_PREFIX + "ROLL":
             try:
                 await roll_dice(message, arg_list[1], arg_list[2])
             except IndexError:
@@ -60,7 +61,7 @@ async def on_message(message):
                 print("Error rolling dice, type error")
 
         # Flip a coin
-        elif "FLIP" in arg_list[0]:
+        elif arg_list[0] == BOT_PREFIX + "FLIP":
             flip = random.randint(1, 3)
             if flip == 1:
                 await client.send_message(message.channel, "Heads")
@@ -69,10 +70,10 @@ async def on_message(message):
                 await client.send_message(message.channel, "Tails")
                 print("Tails")
 
-        elif "IAM" in arg_list[0]:
+        elif arg_list[0] == BOT_PREFIX + "IAM":
             await role_assign(message, arg_list)
 
-        elif "TEAMS" in arg_list[0]:
+        elif arg_list[0] == BOT_PREFIX + "TEAMS":
             try:
                 await team_gen(message, arg_list)
             except IndexError:
@@ -82,56 +83,91 @@ async def on_message(message):
                 await client.send_message(message.channel, "First argument can only be a number!")
                 print("Error creating teams, type error")
 
-        elif "ADMIN_HELP" in arg_list[0]:
-            if "ze moderators" in [y.name.lower() for y in message.author.roles]:
-                await send_admin_help(message)
+        elif arg_list[0] == BOT_PREFIX + "TEAMS_SHARKS":
+            try:
+                await team_gen_sharks(message, arg_list)
+            except IndexError:
+                await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
+                print("Error creating teams, not enough args")
+            except ValueError:
+                await client.send_message(message.channel, "First argument can only be a number!")
+                print("Error creating teams, type error")
 
-        elif "HELP" in arg_list[0]:
+        elif arg_list[0] == BOT_PREFIX + "HELP":
             await send_help(message)
 
-        elif "ADMIN_PURGE" in arg_list[0]:
+        #Admin commands
+        elif BOT_PREFIX + "ADMIN" in arg_list[0]:
             if "ze moderators" in [y.name.lower() for y in message.author.roles]:
-                try:
-                    await purge_amount(message, arg_list[1])
-                except IndexError:
-                    await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
-                    print("Error purging, not enough args")
-                except ValueError:
-                    await client.send_message(message.channel, "Argument can only be a number!")
-                    print("Error purging, type error")
+                if arg_list[0] == BOT_PREFIX + "ADMIN_HELP":
+                    if "ze moderators" in [y.name.lower() for y in message.author.roles]:
+                        await send_admin_help(message)
+
+                elif arg_list[0] == BOT_PREFIX + "ADMIN_PURGE":
+
+                        try:
+                            await purge_amount(message, arg_list[1])
+                        except IndexError:
+                            await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
+                            print("Error purging, not enough args")
+                        except ValueError:
+                            await client.send_message(message.channel, "Argument can only be a number!")
+                            print("Error purging, type error")
 
 
 # ---[ Bot Commands ]---
-# Prints out the bot help
 
 
 async def team_gen(message, arg_list):
-    orig_list = []
-    for x in range(int(arg_list[1])):
-        orig_list.append(x + 1)
+    orig_list = arg_list[2:len(arg_list)]
+
+    teams = int(arg_list[1])
+    total_people = len(orig_list)
+
+    PPT = math.ceil(total_people / teams)
+
+    random.shuffle(orig_list)
+
+    to_send = ""
+
+    for x in range(teams):
+        to_send = to_send + "Team " + str(x+1) + ":\n"
+        for y in range(PPT):
+            if len(orig_list) > 0:
+                to_send += str(orig_list[len(orig_list)-1]) + "\n"
+                orig_list.pop()
+        to_send += "\n"
+
+    await client.send_message(message.channel, to_send)
+
+
+async def team_gen_sharks(message, arg_list):
+    orig_list = arg_list[1:len(arg_list)]
 
     list_temp = orig_list.copy()
     length_team = len(list_temp)
-    length_args = len(arg_list) - 2
-    pos = 2
 
-    for x in range(length_args):
+    to_send = ""
+
+    for x in range(2):
+
         i = random.randint(0, length_team - 1)
-        await client.send_message(message.channel, str(arg_list[pos]) + " is on team " + str(list_temp[i]))
+        to_send += str(list_temp[i] + " is a shark") + "\n"
         list_temp.remove(list_temp[i])
-        if not list_temp:
-            list_temp = orig_list.copy()
-
         length_team = len(list_temp)
-        pos = pos + 1
+        print(list_temp)
+
+    await client.send_message(message.channel, to_send)
 
 
+    # Prints out the bot help
 async def send_help(message):
     await client.send_message(message.channel, "}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
                                                "sized dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
                                                "randomised teams containing any amount of users")
 
 
+# Prints out the admin bot help
 async def send_admin_help(message):
     await client.send_message(message.channel, "}admin_purge x - deletes x amount of messages from the current chat and then the command")
 
