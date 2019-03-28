@@ -14,9 +14,11 @@ TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
 '''
 
+
 # Testing bot token
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
+
 
 client = discord.Client()
 
@@ -52,7 +54,7 @@ async def on_message(message):
         # Roll dice
         elif arg_list[0] == BOT_PREFIX + "ROLL":
             try:
-                await roll_dice(message, arg_list[1], arg_list[2])
+                await roll_dice(message, arg_list)
             except IndexError:
                 await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
                 print("Error rolling dice, not enough args")
@@ -96,7 +98,7 @@ async def on_message(message):
         elif arg_list[0] == BOT_PREFIX + "HELP":
             await send_help(message)
 
-        #Admin commands
+        # Admin commands
         elif BOT_PREFIX + "ADMIN" in arg_list[0]:
             if "ze moderators" in [y.name.lower() for y in message.author.roles]:
                 if arg_list[0] == BOT_PREFIX + "ADMIN_HELP":
@@ -150,7 +152,6 @@ async def team_gen_sharks(message, arg_list):
     to_send = ""
 
     for x in range(2):
-
         i = random.randint(0, length_team - 1)
         to_send += str(list_temp[i] + " is a shark") + "\n"
         list_temp.remove(list_temp[i])
@@ -160,11 +161,12 @@ async def team_gen_sharks(message, arg_list):
     await client.send_message(message.channel, to_send)
 
 
-    # Prints out the bot help
+# Prints out the bot help
 async def send_help(message):
     await client.send_message(message.channel, "}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
                                                "sized dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
-                                               "randomised teams containing any amount of users")
+                                               "randomised teams containing any amount of users\n}teams_sharks @user "
+                                               "@user - shark selection for depth")
 
 
 # Prints out the admin bot help
@@ -173,9 +175,9 @@ async def send_admin_help(message):
 
 
 # Roles x amount of y sized dice
-async def roll_dice(message, amount, size):
-    amount = int(amount)
-    size = int(size)
+async def roll_dice(message, arg_list):
+    amount = int(arg_list[1])
+    size = int(arg_list[2])
 
     if amount > 10:
         amount = 10
