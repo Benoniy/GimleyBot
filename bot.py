@@ -178,16 +178,19 @@ async def send_admin_help(message):
 async def roll_dice(message, arg_list):
     amount = int(arg_list[1])
     size = int(arg_list[2])
+    print(amount)
 
     if amount > 10:
         amount = 10
     if size > 100:
         size = 100
 
+    to_send = ""
+
     for x in range(amount):
         i = random.randint(1, size)
-        await client.send_message(message.channel, i)
-        print("Rolled " + i)
+        to_send += str(i) + "\n"
+    await client.send_message(message.channel, to_send)
 
 
 async def role_assign(message, arg_list):
