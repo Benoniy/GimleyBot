@@ -25,14 +25,15 @@ client = discord.Client()
 
 @client.event
 async def on_ready():
-    await client.change_presence(game=discord.Game(name="}help"))
+    game = discord.Game("} help")
+    await client.change_presence(status=discord.Status.idle, activity=game, afk=False)
     print("Dominatrix online\n")
 
 
 @client.event
 async def on_member_join(member):
     role = discord.utils.get(member.server.roles, name="Noobies")
-    await client.add_roles(member, role)
+    await member.add_roles(role, reason=None, atomic=True)
     print("New member has joined")
 
 
@@ -45,10 +46,10 @@ async def on_message(message):
         message_content = message.content.upper()
         arg_list = message_content.split()
         print(message_content)
-
+        channel = message.channel
         # Check what command was and call appropriate function
         if arg_list[0] == BOT_PREFIX + "STATUS" :
-            await client.send_message(message.channel, "working")
+            await channel.send("working")
             print("Printing status")
 
         # Roll dice
@@ -56,20 +57,20 @@ async def on_message(message):
             try:
                 await roll_dice(message, arg_list)
             except IndexError:
-                await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
+                await channel.send("Not enough arguments supplied, please see }help for instructions!")
                 print("Error rolling dice, not enough args")
             except ValueError:
-                await client.send_message(message.channel, "Command can only accept numbers as arguments!")
+                await channel.send("Command can only accept numbers as arguments!")
                 print("Error rolling dice, type error")
 
         # Flip a coin
         elif arg_list[0] == BOT_PREFIX + "FLIP":
             flip = random.randint(1, 3)
             if flip == 1:
-                await client.send_message(message.channel, "Heads")
+                await channel.send("Heads")
                 print("Heads")
             else:
-                await client.send_message(message.channel, "Tails")
+                await channel.send("Tails")
                 print("Tails")
 
         elif arg_list[0] == BOT_PREFIX + "IAM":
@@ -79,20 +80,20 @@ async def on_message(message):
             try:
                 await team_gen(message, arg_list)
             except IndexError:
-                await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
+                await channel.send("Not enough arguments supplied, please see }help for instructions!")
                 print("Error creating teams, not enough args")
             except ValueError:
-                await client.send_message(message.channel, "First argument can only be a number!")
+                await channel.send("First argument can only be a number!")
                 print("Error creating teams, type error")
 
         elif arg_list[0] == BOT_PREFIX + "TEAMS_SHARKS":
             try:
                 await team_gen_sharks(message, arg_list)
             except IndexError:
-                await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
+                await channel.send("Not enough arguments supplied, please see }help for instructions!")
                 print("Error creating teams, not enough args")
             except ValueError:
-                await client.send_message(message.channel, "First argument can only be a number!")
+                await channel.send("First argument can only be a number!")
                 print("Error creating teams, type error")
 
         elif arg_list[0] == BOT_PREFIX + "HELP":
@@ -110,10 +111,10 @@ async def on_message(message):
                         try:
                             await purge_amount(message, arg_list[1])
                         except IndexError:
-                            await client.send_message(message.channel, "Not enough arguments supplied, please see }help for instructions!")
+                            await ("Not enough arguments supplied, please see }help for instructions!")
                             print("Error purging, not enough args")
                         except ValueError:
-                            await client.send_message(message.channel, "Argument can only be a number!")
+                            await channel.send("Argument can only be a number!")
                             print("Error purging, type error")
 
 
@@ -139,8 +140,8 @@ async def team_gen(message, arg_list):
                 to_send += str(orig_list[len(orig_list)-1]) + "\n"
                 orig_list.pop()
         to_send += "\n"
-
-    await client.send_message(message.channel, to_send)
+    channel = message.channel
+    await channel.send(to_send)
 
 
 async def team_gen_sharks(message, arg_list):
@@ -157,13 +158,14 @@ async def team_gen_sharks(message, arg_list):
         list_temp.remove(list_temp[i])
         length_team = len(list_temp)
         print(list_temp)
-
-    await client.send_message(message.channel, to_send)
+    channel = message.channel
+    await channel.send(to_send)
 
 
 # Prints out the bot help
 async def send_help(message):
-    await client.send_message(message.channel, "}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
+    channel = message.channel
+    await channel.send("}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
                                                "sized dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
                                                "randomised teams containing any amount of users\n}teams_sharks @user "
                                                "@user - shark selection for depth")
@@ -171,7 +173,8 @@ async def send_help(message):
 
 # Prints out the admin bot help
 async def send_admin_help(message):
-    await client.send_message(message.channel, "}admin_purge x - deletes x amount of messages from the current chat and then the command")
+    channel = message.channel
+    await channel.send("}admin_purge x - deletes x amount of messages from the current chat and then the command")
 
 
 # Roles x amount of y sized dice
@@ -190,11 +193,12 @@ async def roll_dice(message, arg_list):
     for x in range(amount):
         i = random.randint(1, size)
         to_send += str(i) + "\n"
-    await client.send_message(message.channel, to_send)
+    channel = message.channel
+    await channel.send(to_send)
 
 
 async def role_assign(message, arg_list):
-
+    author = message.author
     # Only happens in server_guidelines
     if message.channel.name == "server_guidelines":
         temp_role = discord.utils.get(message.server.roles, name="Temp Members")
@@ -203,25 +207,25 @@ async def role_assign(message, arg_list):
         if arg_list[1] == "18+":
             if "18-" in [y.name.lower() for y in message.author.roles]:
                 role = discord.utils.get(message.server.roles, name="18-")
-                await client.remove_roles(message.author, role)
+                await author.remove_roles(role)
 
             role = discord.utils.get(message.server.roles, name="18+")
-            await client.add_roles(message.author, role)
-            await client.send_message(message.channel, "Over 18")
+            await author.add_roles(role)
+            await author.send_message(message.channel, "Over 18")
 
         # Younger than 18
         elif arg_list[1] == "18-":
             if "18+" in [y.name.lower() for y in message.author.roles]:
                 role = discord.utils.get(message.server.roles, name="18+")
-                await client.remove_roles(message.author, role)
+                await author.remove_roles(role)
             role = discord.utils.get(message.server.roles, name="18-")
-            await client.add_roles(message.author, role)
-            await client.send_message(message.channel, "Under 18")
+            await author.add_roles(role)
+            await author.send_message(message.channel, "Under 18")
 
         # Remove noob role and add to temp members
         noob_role = discord.utils.get(message.server.roles, name="Noobies")
-        await client.remove_roles(message.author, noob_role)
-        await client.add_roles(message.author, temp_role)
+        await author.remove_roles(noob_role)
+        await author.add_roles(temp_role)
         await purge_non_admin(message)
 
 
@@ -241,11 +245,13 @@ def is_admin(message):
 # Check if the message was sent by anyone with the Z moderators role
 async def purge_non_admin(message):
     if message.channel.name == "server_guidelines":
-        await client.purge_from(message.channel, limit=100, check=is_admin)
+        channel = message.channel
+        await channel.purge_from(message.channel, limit=100, check=is_admin)
 
 
 async def purge_amount(message, limit):
-    await client.purge_from(message.channel, limit=int(limit) + 1)
+    channel = message.channel
+    await channel.purge_from(message.channel, limit=int(limit) + 1)
 
 # ---[ Run Bot ]---
 client.run(TOKEN)
