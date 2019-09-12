@@ -25,6 +25,7 @@ client = discord.Client()
 
 @client.event
 async def on_ready():
+    # sets status of bot to ready/online when code is run
     game = discord.Game("} help")
     await client.change_presence(status=discord.Status.idle, activity=game, afk=False)
     print("Dominatrix online\n")
@@ -32,6 +33,7 @@ async def on_ready():
 
 @client.event
 async def on_member_join(member):
+    # Assigns 'noobies' role to a new member
     role = discord.utils.get(member.server.roles, name="Noobies")
     await member.add_roles(role, reason=None, atomic=True)
     print("New member has joined")
@@ -48,7 +50,7 @@ async def on_message(message):
         print(message_content)
         channel = message.channel
         # Check what command was and call appropriate function
-        if arg_list[0] == BOT_PREFIX + "STATUS" :
+        if arg_list[0] == BOT_PREFIX + "STATUS":
             await channel.send("working")
             print("Printing status")
 
@@ -72,6 +74,16 @@ async def on_message(message):
             else:
                 await channel.send("Tails")
                 print("Tails")
+
+        elif arg_list[0] == BOT_PREFIX + "INSULT":
+            print("insult command recieved")
+            try:
+                await insult_gen(message, arg_list)
+            except IndexError:
+                await channel.send("You're the fool here! Try specifying someone to insult next time.")
+                print("Error insulting, no user given to insult")
+            except ValueError:
+                print("Value Error in INSULT")
 
         elif arg_list[0] == BOT_PREFIX + "IAM":
             await role_assign(message, arg_list)
@@ -252,6 +264,19 @@ async def purge_non_admin(message):
 async def purge_amount(message, limit):
     channel = message.channel
     await channel.purge_from(message.channel, limit=int(limit) + 1)
+
+
+async def insult_gen(message, arg_list):
+    #insults list
+    insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!", " looks like Akif"]
+    channel = message.channel
+    insultees = arg_list[1:len(arg_list)]
+    for x in range(len(insultees)):
+        tosend = ""
+        tosend += insultees[x]
+        tosend += insults[random.randint(0, len(insults)-1)]
+        await channel.send(tosend)
+        print("insult sent")
 
 # ---[ Run Bot ]---
 client.run(TOKEN)
