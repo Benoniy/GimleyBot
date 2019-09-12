@@ -268,7 +268,7 @@ async def purge_amount(message, limit):
 
 async def insult_gen(message, arg_list):
     #insults list
-    insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!", " looks like Akif", " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy", " votes for trump", " is almost as mediocre at Overwatch as Akif", " lets face it, you're past your best at this point."]
+    insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!", " looks like Akif", " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy", " votes for trump", " is almost as mediocre at Overwatch as Akif", " lets face it, you're past your best at this point.", " is a troglodyte"]
     channel = message.channel
     insultees = arg_list[1:len(arg_list)]
     for x in range(len(insultees)):
