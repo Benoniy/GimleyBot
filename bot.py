@@ -6,6 +6,10 @@ A discord bot written in Python for StockImageSharks & N0ICE
 import discord
 import random
 import math
+import requests
+from requests.exceptions import HTTPError
+import json
+
 
 # ---[ Bot Setup ]---
 '''
@@ -18,15 +22,27 @@ BOT_PREFIX = "}"
 # Testing bot token
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
-
+rates = 0
 
 client = discord.Client()
 
 
 @client.event
 async def on_ready():
+    # get the JSON of currency rates - since RPi is supposed to reboot and re-run this each day, updating is a non-issue
+    global rates
+    try:
+        response = requests.get("https://api.ratesapi.io/api/latest")
+        rates = json.loads(response.text)
+        rates = rates['rates']
+        rates['EUR'] = 1  # Euro is default
+        response.raise_for_status()  # throws exception if 404
+    except HTTPError:
+        print("Unsuccessful GET request for currency rates")
+    except TypeError:
+        print("Could not get dictionary from whatever was pulled.")
     # sets status of bot to ready/online when code is run
-    game = discord.Game("} help")
+    game = discord.Game(" yo mama")
     await client.change_presence(status=discord.Status.idle, activity=game, afk=False)
     print("Dominatrix online\n")
 
@@ -83,7 +99,23 @@ async def on_message(message):
                 await channel.send("You're the fool here! Try specifying someone to insult next time.")
                 print("Error insulting, no user given to insult")
             except ValueError:
+                await channel.send("Please @ someone to send an insult")
                 print("Value Error in INSULT")
+
+        elif arg_list[0] == BOT_PREFIX + "CONVERT":
+            print("Convert command recieved")
+            if rates == 0:
+                await channel.send("Exchange rate source unavailable right now. Try again tomorrow or after the bot has restarted.")
+            try:
+                await convert(message, arg_list)
+            except IndexError:
+                await channel.send("Index error. Either not enough arguments given or too many.")
+                print("Index Error")
+            except ValueError:
+                await channel.send("Value error. Try using different currency codes")
+                print("Value error")
+            except KeyError:
+                await channel.send("Key error. Try using different currency codes.")
 
         elif arg_list[0] == BOT_PREFIX + "IAM":
             await role_assign(message, arg_list)
@@ -123,7 +155,7 @@ async def on_message(message):
                         try:
                             await purge_amount(message, arg_list[1])
                         except IndexError:
-                            await ("Not enough arguments supplied, please see }help for instructions!")
+                            await channel.send("Not enough arguments supplied, please see }help for instructions!")
                             print("Error purging, not enough args")
                         except ValueError:
                             await channel.send("Argument can only be a number!")
@@ -178,9 +210,9 @@ async def team_gen_sharks(message, arg_list):
 async def send_help(message):
     channel = message.channel
     await channel.send("}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
-                                               "sized dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
-                                               "randomised teams containing any amount of users\n}teams_sharks @user "
-                                               "@user - shark selection for depth")
+                       "sized dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
+                       "randomised teams containing any amount of users\n}teams_sharks @user "
+                       "@user - shark selection for depth")
 
 
 # Prints out the admin bot help
@@ -268,15 +300,49 @@ async def purge_amount(message, limit):
 
 async def insult_gen(message, arg_list):
     #insults list
-    insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!", " looks like Akif", " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy", " votes for trump", " is almost as mediocre at Overwatch as Akif", " lets face it, you're past your best at this point.", " is a troglodyte"]
+    insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!", " looks like Akif",
+               " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy", " votes for trump",
+               " is almost as mediocre at Overwatch as Akif", " lets face it, you're past your best at this point.", " is a troglodyte"]
     channel = message.channel
     insultees = arg_list[1:len(arg_list)]
     for x in range(len(insultees)):
+        if "@" not in insultees[x]:
+            raise ValueError('no @ symbol used')
         tosend = ""
         tosend += insultees[x]
         tosend += insults[random.randint(0, len(insults)-1)]
         await channel.send(tosend)
         print("insult sent")
+
+
+async def convert(message, arg_list):
+    # EUR = 1
+    channel = message.channel
+    toSend = ""
+    if len(arg_list) <= 4:
+        c1 = str(arg_list[1])
+        c2 = str(arg_list[2])
+        val = arg_list[3]
+        # Convert the value given
+        try:
+            val = float(val)
+        except ValueError:
+            print("Failed type conversion")
+            raise ValueError
+        if len(c1) < 3 | len(c2) < 3:
+            print("Currency codes given too small")
+            raise ValueError
+        elif len(c1) > 3 | len(c2) > 3:
+            print("Currency codes given too large")
+            raise ValueError
+        else:
+            toSend += "%.2f" % val + " in " + c1 + " is: "
+            newval = val * float(rates[c1])
+            newval *= float(rates[c2])
+            toSend += "%.2f" % newval + " in " + c2
+            await channel.send(toSend)
+    else:
+        raise IndexError("Too many or too few arguments")
 
 # ---[ Run Bot ]---
 client.run(TOKEN)
