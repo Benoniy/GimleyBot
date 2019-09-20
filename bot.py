@@ -12,16 +12,19 @@ import json
 
 
 # ---[ Bot Setup ]---
-'''
+
 # Actual bot token
+'''
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
 '''
 
 
+
 # Testing bot token
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
+
 rates = 0
 
 client = discord.Client()
@@ -363,7 +366,7 @@ async def convert(message, arg_list):
             raise ValueError
         else:
             toSend += "%.2f" % val + " in " + c1 + " is: "
-            newval = val * float(rates[c1])
+            newval = val / float(rates[c1])
             newval *= float(rates[c2])
             toSend += "%.2f" % newval + " in " + c2
             await channel.send(toSend)
