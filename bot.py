@@ -102,6 +102,17 @@ async def on_message(message):
                 await channel.send("Please @ someone to send an insult")
                 print("Value Error in INSULT")
 
+        elif arg_list[0] == BOT_PREFIX + "SEDUCE":
+            print("seduce command recieved")
+            try:
+                await seduce_gen(message, arg_list)
+            except IndexError:
+                await channel.send("Try specifying the person you'd like me to seduce.")
+                print("Index Error in SEDUCE")
+            except ValueError:
+                await channel.send("Please @ someone to seduce")
+                print("Value Error in SEDUCE")
+
         elif arg_list[0] == BOT_PREFIX + "CONVERT":
             print("Convert command recieved")
             if rates == 0:
@@ -314,6 +325,21 @@ async def insult_gen(message, arg_list):
         await channel.send(tosend)
         print("insult sent")
 
+async def seduce_gen(message, arg_list):
+    # insults list
+    seductions = [" I like your eyebrows.", " you look very HUMAN today", " let us abscond and create many sub-units together",
+                  " my love for you is almost as strong as my hatred for Overwatch", " if I were human, I would kiss you.",
+                  " if we work together, nothing will be able to stop us!"]
+    channel = message.channel
+    seducees = arg_list[1:len(arg_list)]
+    for x in range(len(seducees)):
+        if "@" not in seducees[x]:
+            raise ValueError('no @ symbol used')
+        tosend = ""
+        tosend += seducees[x]
+        tosend += seductions[random.randint(0, len(seductions) - 1)]
+        await channel.send(tosend)
+        print("seductions sent")
 
 async def convert(message, arg_list):
     # EUR = 1
