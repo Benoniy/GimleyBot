@@ -3,6 +3,7 @@ Welcome to StockImageBot
 A discord bot written in Python for StockImageSharks & N0ICE
 '''
 
+# ---[ Imports ]---
 import discord
 import random
 import math
@@ -24,6 +25,7 @@ BOT_PREFIX = "}"
 # Testing bot token
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
+
 
 rates = 0
 
@@ -49,7 +51,7 @@ async def on_ready():
     await client.change_presence(status=discord.Status.idle, activity=game, afk=False)
     print("Dominatrix online\n")
 
-
+# ---[ Member Join Code ]---
 @client.event
 async def on_member_join(member):
     # Assigns 'noobies' role to a new member
@@ -57,7 +59,7 @@ async def on_member_join(member):
     await member.add_roles(role, reason=None, atomic=True)
     print("New member has joined")
 
-
+# ---[ Bot Command Code ]---
 # Happens whenever a message
 @client.event
 async def on_message(message):
@@ -94,6 +96,7 @@ async def on_message(message):
                 await channel.send("Tails")
                 print("Tails")
 
+        # Insult a member
         elif arg_list[0] == BOT_PREFIX + "INSULT":
             print("insult command recieved")
             try:
@@ -105,6 +108,7 @@ async def on_message(message):
                 await channel.send("Please @ someone to send an insult")
                 print("Value Error in INSULT")
 
+        # Seduce a member
         elif arg_list[0] == BOT_PREFIX + "SEDUCE":
             print("seduce command recieved")
             try:
@@ -116,6 +120,7 @@ async def on_message(message):
                 await channel.send("Please @ someone to seduce")
                 print("Value Error in SEDUCE")
 
+        # Convert an amount from one currency to another
         elif arg_list[0] == BOT_PREFIX + "CONVERT":
             print("Convert command recieved")
             if rates == 0:
@@ -131,9 +136,11 @@ async def on_message(message):
             except KeyError:
                 await channel.send("Key error. Try using different currency codes.")
 
+        # Tell a user their roles
         elif arg_list[0] == BOT_PREFIX + "IAM":
             await role_assign(message, arg_list)
 
+        # Generate teams
         elif arg_list[0] == BOT_PREFIX + "TEAMS":
             try:
                 await team_gen(message, arg_list)
@@ -144,6 +151,7 @@ async def on_message(message):
                 await channel.send("First argument can only be a number!")
                 print("Error creating teams, type error")
 
+        # Generate teams for Depth
         elif arg_list[0] == BOT_PREFIX + "TEAMS_SHARKS":
             try:
                 await team_gen_sharks(message, arg_list)
@@ -154,6 +162,7 @@ async def on_message(message):
                 await channel.send("First argument can only be a number!")
                 print("Error creating teams, type error")
 
+        # Help command
         elif arg_list[0] == BOT_PREFIX + "HELP":
             await send_help(message)
 
@@ -224,9 +233,10 @@ async def team_gen_sharks(message, arg_list):
 async def send_help(message):
     channel = message.channel
     await channel.send("}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
-                       "sized dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
+                       "sided dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
                        "randomised teams containing any amount of users\n}teams_sharks @user "
-                       "@user - shark selection for depth")
+                       "@user - shark selection for depth\n}insult @user - insults a user"
+                       "\n}seduce @user - seduces a user\n}convert USD GBP amount - converts an amount from one currency to another")
 
 
 # Prints out the admin bot help
@@ -287,6 +297,7 @@ async def role_assign(message, arg_list):
         await purge_non_admin(message)
 
 
+# ---[ Bot Command Methods ]---
 # Check if the message was sent by the bot
 def is_me(m):
     return m.author == client.user
@@ -313,7 +324,7 @@ async def purge_amount(message, limit):
 
 
 async def insult_gen(message, arg_list):
-    #insults list
+    # insults list
     insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!", " looks like Akif",
                " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy", " votes for trump",
                " is almost as mediocre at Overwatch as Akif", " lets face it, you're past your best at this point.", " is a troglodyte"]
@@ -327,6 +338,7 @@ async def insult_gen(message, arg_list):
         tosend += insults[random.randint(0, len(insults)-1)]
         await channel.send(tosend)
         print("insult sent")
+
 
 async def seduce_gen(message, arg_list):
     # insults list
@@ -343,6 +355,7 @@ async def seduce_gen(message, arg_list):
         tosend += seductions[random.randint(0, len(seductions) - 1)]
         await channel.send(tosend)
         print("seductions sent")
+
 
 async def convert(message, arg_list):
     # EUR = 1
