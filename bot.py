@@ -120,6 +120,18 @@ async def on_message(message):
                 await channel.send("Please @ someone to seduce")
                 print("Value Error in SEDUCE")
 
+        # Threaten a member
+        elif arg_list[0] == BOT_PREFIX + "THREATEN":
+            print("threaten command recieved")
+            try:
+                await threaten_gen(message, arg_list)
+            except IndexError:
+                await channel.send("Try specifying the person you'd like to threaten.")
+                print("Index Error in THREATEN")
+            except ValueError:
+                await channel.send("Please @ someone to threaten")
+                print("Value Error in THREATEN")
+
         # Convert an amount from one currency to another
         elif arg_list[0] == BOT_PREFIX + "CONVERT":
             print("Convert command recieved")
@@ -236,7 +248,8 @@ async def send_help(message):
                        "sided dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
                        "randomised teams containing any amount of users\n}teams_sharks @user "
                        "@user - shark selection for depth\n}insult @user - insults a user"
-                       "\n}seduce @user - seduces a user\n}convert USD GBP amount - converts an amount from one currency to another")
+                       "\n}threaten @ user - threatens a user\n}seduce @user - seduces a user"
+                       "\n}convert USD GBP amount - converts an amount from one currency to another")
 
 
 # Prints out the admin bot help
@@ -355,6 +368,22 @@ async def seduce_gen(message, arg_list):
         tosend += seductions[random.randint(0, len(seductions) - 1)]
         await channel.send(tosend)
         print("seductions sent")
+
+
+async def threaten_gen(message, arg_list):
+    # threatens list
+    threatens = [" I'll kill you!", " if God had wanted you to live, he would not have created me!",
+                 "I can't legally practice law but I can take you down by the river with a crossbow to teach you a little something about god's forgotten children"]
+    channel = message.channel
+    threatenees = arg_list[1:len(arg_list)]
+    for x in range(len(threatenees)):
+        if "@" not in threatenees[x]:
+            raise ValueError("No @ symbol used")
+        tosend = ""
+        tosend += threatenees[x]
+        tosend += threatens[random.randint(0, len(threatens) - 1)]
+        await channel.send(tosend)
+        print("threatens sent")
 
 
 async def convert(message, arg_list):
