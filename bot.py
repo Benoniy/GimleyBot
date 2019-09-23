@@ -10,6 +10,7 @@ import math
 import requests
 from requests.exceptions import HTTPError
 import json
+from steam import SteamID
 
 
 # ---[ Bot Setup ]---
@@ -177,6 +178,16 @@ async def on_message(message):
         # Help command
         elif arg_list[0] == BOT_PREFIX + "HELP":
             await send_help(message)
+
+        # Steam ID Command
+        elif arg_list[0] == BOT_PREFIX + "STEAMID":
+            try:
+                await getSteamID(arg_list, message)
+            except IndexError:
+                await channel.send("Not enough arguments supplied.")
+                print("Index Error in SteamID")
+            except ValueError:
+                await channel.send("Not a valid username")
 
         # Admin commands
         elif BOT_PREFIX + "ADMIN" in arg_list[0]:
@@ -414,6 +425,21 @@ async def convert(message, arg_list):
             await channel.send(toSend)
     else:
         raise IndexError("Too many or too few arguments")
+
+
+async def getSteamID(arg_list, message):
+    if len(arg_list) < 2 or len(arg_list) > 2: raise IndexError()
+    tosend = ""
+    channel = message.channel
+
+    # Returns the different steam ID's for a given user
+    id = SteamID.from_url("https://steamcommunity.com/id/" + arg_list[1] + "/")
+    tosend += "SteamID: " + str(id.as_steam2_zero)
+    tosend += "\nSteamID3: " + str(id.as_32)
+    tosend += "\nSteamID64: " + str(id.as_64)
+    tosend += "\n\n" + id.community_url
+
+    await channel.send(tosend)
 
 # ---[ Run Bot ]---
 client.run(TOKEN)
