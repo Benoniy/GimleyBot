@@ -97,6 +97,19 @@ async def on_message(message):
                 await channel.send("Tails")
                 print("Tails")
 
+        # Print out modpacks used for games on the server
+        elif arg_list[0] == BOT_PREFIX + "MODPACK" or arg_list[0] == BOT_PREFIX + "MODPACKS":
+            tosend = ""
+            tosend += "**Left-4-Dead-2:**\nhttps://steamcommunity.com/sharedfiles/filedetails/?id=1179844613\n"
+            tosend += "**Golf with your Friends:**\nhttps://steamcommunity.com/sharedfiles/filedetails/?id=1565153035\n"
+            tosend += "**Minecraft:**\nhttps://1drv.ms/u/s!AmQHrphd1TN71im1m0rEpudm4zrx?e=MH79yc\n"
+            tosend += "**Garry's Mod:** (TTT)\nhttps://steamcommunity.com/sharedfiles/filedetails/?id=1737676630\n"
+            tosend += "**Garry's Mod:** (Murder)\nhttps://steamcommunity.com/sharedfiles/filedetails/?id=1356744399\n"
+            tosend += "**Team-Fortress 2:**\nhttps://steamcommunity.com/sharedfiles/filedetails/?id=1756023085\n"
+            tosend += "**Space Engineers:** (Creative)\nhttps://steamcommunity.com/sharedfiles/filedetails/?id=1790802750\n"
+            tosend += "**Space Engineers:** (Survival)\nhttps://steamcommunity.com/sharedfiles/filedetails/?id=1869425644\n"
+            await channel.send(tosend)
+
         # Insult a member
         elif arg_list[0] == BOT_PREFIX + "INSULT":
             print("insult command recieved")
@@ -132,6 +145,12 @@ async def on_message(message):
             except ValueError:
                 await channel.send("Please @ someone to threaten")
                 print("Value Error in THREATEN")
+
+        elif arg_list[0] == BOT_PREFIX + "GOOGLE":
+            try:
+                await imageSearch(arg_list, message)
+            except IndexError:
+                await channel.send("Please give a search term.")
 
         # Convert an amount from one currency to another
         elif arg_list[0] == BOT_PREFIX + "CONVERT":
