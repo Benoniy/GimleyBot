@@ -310,31 +310,33 @@ async def roll_dice(message, arg_list):
 
 async def role_assign(message, arg_list):
     author = message.author
+    channel = message.channel
+    print(author)
     # Only happens in server_guidelines
     if message.channel.name == "server_guidelines":
-        temp_role = discord.utils.get(message.server.roles, name="Temp Members")
-
+        temp_role = discord.utils.get(message.guild.roles, name="Temp Members")
         # 18 or older
         if arg_list[1] == "18+":
+            print("18+")
             if "18-" in [y.name.lower() for y in message.author.roles]:
-                role = discord.utils.get(message.server.roles, name="18-")
+                role = discord.utils.get(message.guild.roles, name="18-")
                 await author.remove_roles(role)
-
-            role = discord.utils.get(message.server.roles, name="18+")
+            role = discord.utils.get(message.guild.roles, name="18+")
             await author.add_roles(role)
-            await author.send_message(message.channel, "Over 18")
+            await channel.send("Over 18")
+            print("role added")
 
         # Younger than 18
         elif arg_list[1] == "18-":
             if "18+" in [y.name.lower() for y in message.author.roles]:
-                role = discord.utils.get(message.server.roles, name="18+")
+                role = discord.utils.get(message.guild.roles, name="18+")
                 await author.remove_roles(role)
-            role = discord.utils.get(message.server.roles, name="18-")
+            role = discord.utils.get(message.guild.roles, name="18-")
             await author.add_roles(role)
-            await author.send_message(message.channel, "Under 18")
+            await channel.send("Under 18")
 
         # Remove noob role and add to temp members
-        noob_role = discord.utils.get(message.server.roles, name="Noobies")
+        noob_role = discord.utils.get(message.guild.roles, name="Noobies")
         await author.remove_roles(noob_role)
         await author.add_roles(temp_role)
         await purge_non_admin(message)
@@ -358,7 +360,7 @@ def is_admin(message):
 async def purge_non_admin(message):
     if message.channel.name == "server_guidelines":
         channel = message.channel
-        await channel.purge_from(message.channel, limit=100, check=is_admin)
+        await channel.purge(limit=100, check=is_admin)
 
 
 async def purge_amount(message, limit):
