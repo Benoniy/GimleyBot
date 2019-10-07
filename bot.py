@@ -318,7 +318,7 @@ async def role_assign(message, arg_list):
     if arg_list[1] == "18+":
         print("18+")
         if "18-" in [y.name.lower() for y in message.author.roles]:
-            role = discord.utils.get(message.guild.roles, name="18-")
+            role = discord.utils.get(message.guild.roles, name="Under 18")
             await author.remove_roles(role)
         role = discord.utils.get(message.guild.roles, name="18+")
         await author.add_roles(role)
@@ -330,7 +330,7 @@ async def role_assign(message, arg_list):
         if "18+" in [y.name.lower() for y in message.author.roles]:
             role = discord.utils.get(message.guild.roles, name="18+")
             await author.remove_roles(role)
-            role = discord.utils.get(message.guild.roles, name="18-")
+            role = discord.utils.get(message.guild.roles, name="Under 18")
             await author.add_roles(role)
             await channel.send("Under 18")
 
