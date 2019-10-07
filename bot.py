@@ -20,6 +20,7 @@ TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
 
 
+
 # Testing bot token
 '''
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
@@ -339,11 +340,6 @@ async def role_assign(message, arg_list):
         await author.remove_roles(noob_role)
         await author.add_roles(temp_role)
         await purge_non_admin(message)
-    else:
-        await channel.send("Please read through the **#server_guidelines channel** and put your 'iam 18' there. \n"
-                     "You should then be assigned the correct roles and the message should shortly be deleted. \n"
-                     "If this is not the case, please ask or get your friend to ask an admin to give you the appropriate roles.\n")
-
 
 
 # ---[ Bot Command Methods ]---
