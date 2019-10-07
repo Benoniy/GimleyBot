@@ -341,6 +341,10 @@ async def role_assign(message, arg_list):
         await author.add_roles(temp_role)
         await purge_non_admin(message)
 
+    else:
+        channel.send("Please read through the #server_guidelines channel and put your 'iam 18' there. You should then be assigned the correct roles and the message should shortly be deleted. If this is not the case, please ask or get your friend to ask an admin to give you the appropriate roles.")
+
+
 
 # ---[ Bot Command Methods ]---
 # Check if the message was sent by the bot
