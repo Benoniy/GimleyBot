@@ -313,36 +313,31 @@ async def role_assign(message, arg_list):
     channel = message.channel
     print(author)
     # Only happens in server_guidelines
-    if message.channel.name == "server_guidelines":
-        temp_role = discord.utils.get(message.guild.roles, name="Temp Members")
-        # 18 or older
-        if arg_list[1] == "18+":
-            print("18+")
-            if "18-" in [y.name.lower() for y in message.author.roles]:
-                role = discord.utils.get(message.guild.roles, name="18-")
-                await author.remove_roles(role)
-            role = discord.utils.get(message.guild.roles, name="18+")
-            await author.add_roles(role)
-            await channel.send("Over 18")
-            print("role added")
+    temp_role = discord.utils.get(message.guild.roles, name="Temp Members")
+    # 18 or older
+    if arg_list[1] == "18+":
+        print("18+")
+        if "18-" in [y.name.lower() for y in message.author.roles]:
+            role = discord.utils.get(message.guild.roles, name="18-")
+            await author.remove_roles(role)
+        role = discord.utils.get(message.guild.roles, name="18+")
+        await author.add_roles(role)
+        await channel.send("Over 18")
+        print("role added")
 
-        # Younger than 18
-        elif arg_list[1] == "18-":
-            if "18+" in [y.name.lower() for y in message.author.roles]:
-                role = discord.utils.get(message.guild.roles, name="18+")
-                await author.remove_roles(role)
+    # Younger than 18
+    elif arg_list[1] == "18-":
+        if "18+" in [y.name.lower() for y in message.author.roles]:
+            role = discord.utils.get(message.guild.roles, name="18+")
+            await author.remove_roles(role)
             role = discord.utils.get(message.guild.roles, name="18-")
             await author.add_roles(role)
             await channel.send("Under 18")
 
-        # Remove noob role and add to temp members
-        noob_role = discord.utils.get(message.guild.roles, name="Noobies")
-        await author.remove_roles(noob_role)
-        await author.add_roles(temp_role)
-        await purge_non_admin(message)
-    else:
-        await channel.send("Please put any 'iam' comands in  **#server_guidelines**")
-
+    # Remove noob role and add to temp members
+    noob_role = discord.utils.get(message.guild.roles, name="Noobies")
+    await author.remove_roles(noob_role)
+    await author.add_roles(temp_role)
 
 
 # ---[ Bot Command Methods ]---
