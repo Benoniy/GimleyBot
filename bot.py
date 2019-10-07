@@ -340,6 +340,9 @@ async def role_assign(message, arg_list):
         await author.remove_roles(noob_role)
         await author.add_roles(temp_role)
         await purge_non_admin(message)
+    else:
+        await channel.send("Please put any 'iam' comands in  **#server_guidelines**")
+
 
 
 # ---[ Bot Command Methods ]---
