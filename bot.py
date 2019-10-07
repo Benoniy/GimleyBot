@@ -16,16 +16,15 @@ from steam import SteamID
 # ---[ Bot Setup ]---
 
 # Actual bot token
-'''
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
-'''
-
 
 
 # Testing bot token
+'''
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
+'''
 
 
 rates = 0
@@ -48,7 +47,7 @@ async def on_ready():
     except TypeError:
         print("Could not get dictionary from whatever was pulled.")
     # sets status of bot to ready/online when code is run
-    game = discord.Game(" yo mama")
+    game = discord.Game(" with your nipples")
     await client.change_presence(status=discord.Status.idle, activity=game, afk=False)
     print("Dominatrix online\n")
 
@@ -340,9 +339,10 @@ async def role_assign(message, arg_list):
         await author.remove_roles(noob_role)
         await author.add_roles(temp_role)
         await purge_non_admin(message)
-
     else:
-        channel.send("Please read through the #server_guidelines channel and put your 'iam 18' there. You should then be assigned the correct roles and the message should shortly be deleted. If this is not the case, please ask or get your friend to ask an admin to give you the appropriate roles.")
+        await channel.send("Please read through the **#server_guidelines channel** and put your 'iam 18' there. \n"
+                     "You should then be assigned the correct roles and the message should shortly be deleted. \n"
+                     "If this is not the case, please ask or get your friend to ask an admin to give you the appropriate roles.\n")
 
 
 
