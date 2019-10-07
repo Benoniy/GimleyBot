@@ -403,7 +403,8 @@ async def seduce_gen(message, arg_list):
 async def threaten_gen(message, arg_list):
     # threatens list
     threatens = [" I'll kill you!", " if God had wanted you to live, he would not have created me!",
-                 "I can't legally practice law but I can take you down by the river with a crossbow to teach you a little something about god's forgotten children"]
+                 "I can't legally practice law but I can take you down by the river with a crossbow to teach you a little something about god's forgotten children",
+ 		 "Joe is gonna sit on your lap and make you squirm."]
     channel = message.channel
     threatenees = arg_list[1:len(arg_list)]
     for x in range(len(threatenees)):
