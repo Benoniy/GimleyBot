@@ -16,16 +16,16 @@ from steam import SteamID
 # ---[ Bot Setup ]---
 
 # Actual bot token
-'''
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
-'''
 
 
 
 # Testing bot token
+'''
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
+'''
 
 
 rates = 0
@@ -48,7 +48,7 @@ async def on_ready():
     except TypeError:
         print("Could not get dictionary from whatever was pulled.")
     # sets status of bot to ready/online when code is run
-    game = discord.Game(" yo mama")
+    game = discord.Game(" with your nipples")
     await client.change_presence(status=discord.Status.idle, activity=game, afk=False)
     print("Dominatrix online\n")
 
