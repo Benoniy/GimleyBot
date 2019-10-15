@@ -482,6 +482,7 @@ async def timedmessage(arg_list, message):
         # check time
         who = arg_list[1]
         deleteMinutes = arg_list[2]
+	deleteMinutes *= 60
         streamMinutes = arg_list[3]
         streamlink = arg_list[4]
         streamlink = streamlink.lower()
@@ -489,7 +490,7 @@ async def timedmessage(arg_list, message):
             deleteMinutes = int(deleteMinutes)
             await message.channel.send("Sending message to #general-tomfoolery")
             server = message.guild
-            channel = discord.utils.get(server.channels, name="general", type=discord.ChannelType.text)
+            channel = discord.utils.get(server.channels, name="general-tomfoolery", type=discord.ChannelType.text)
             tosend = ""
             if who == "M":
                 for i in server.roles: # Mentions online members
