@@ -219,8 +219,25 @@ async def on_message(message):
 
         # Stream announce & hour-later delete
         elif BOT_PREFIX + "STREAMANNOUNCE" in arg_list[0]:
-            await timedmessage(arg_list, message)
+            try:
+                await timedmessage(arg_list, message)
+            except TypeError():
+                print("streamannounce - type error")
+                await message.channel.send("Please put in a number for how many minutes until the message is deleted")
 
+            except IndexError():
+                print("streamannounce - index error")
+                await message.channel.send("Please put in a valid value for the roles you wish to tag. "
+                                           "Remember this is a single character and you can only specify one.")
+
+            except discord.Forbidden():
+                print("streamannounce - forbidden error")
+                await message.channel.send("Please request the help of a Mod, "
+                                           "there seems to be a role error with this Bot")
+
+            except discord.HTTPException():
+                print("streamannounce - http errror")
+                await message.channel.send("It seems the message could not be deleted after the specified time.")
 
 # ---[ Bot Commands ]---
 
@@ -482,69 +499,54 @@ async def timedmessage(arg_list, message):
         streamMinutes = arg_list[3]
         streamlink = arg_list[4]
         streamlink = streamlink.lower()
-        try:
-            deleteMinutes = float(deleteMinutes)
-            deleteMinutes *= 60
-            await message.channel.send("Sending message to #general-tomfoolery")
-            server = message.guild
-            channel = discord.utils.get(server.channels, name="general-tomfoolery", type=discord.ChannelType.text)
-            tosend = ""
-            print("post channel get check")
-            if who == "M":
-                print("m")
-                for i in server.roles: # Mentions online members
-                    if i.name == "ZE MEMBERS":
-                        tosend += "<@&" + str(i.id) + ">\n"
-            elif who == "E":
-                print("e")
-                for i in server.roles: # Mentions online members + temp-members
-                    if i.name == "ZE MEMBERS":
-                        tosend += "<@&" + str(i.id) + "> "
-                    elif i.name == "TEMP MEMBERS":
-                        tosend += "<@&" + str(i.id) + ">\n"
-            elif who == "S":
-                print("s")
-                for i in server.roles: # Mentions streamer role
-                    if i.name == "Streamers":
-                        tosend += "<@&" + str(i.id) + ">\n"
-            elif who == "W":
-                print("w")
-                for i in server.roles: # Mentions weebs
-                    if i.name == "Weebs":
-                        tosend += "<@&" + str(i.id) + ">\n"
-            elif who == "A":
-                print("a")
-                for i in server.roles: # Mentions artists
-                    if i.name == "Artists":
-                        tosend += "<@&" + str(i.id) + ">\n"
-            elif who == "N":
-                print("n")
-                # @ Nobody
-                tosend += ""
-            else:
-                print("invalid group arg raise")
-                raise IndexError("Invalid argument supplied")
-            print("4")
-            tosend += "<@" + str(message.author.id) + "> is streaming in " + str(streamMinutes) + " minutes!"
-            tosend += "\nGo Support them at: " + streamlink
-            await channel.send(tosend)
-            todelete = channel.last_message
-            await todelete.delete(delay=float(deleteMinutes))
+        deleteMinutes = float(deleteMinutes)
+        deleteMinutes *= 60
+        await message.channel.send("Sending message to #general-tomfoolery")
+        server = message.guild
+        channel = discord.utils.get(server.channels, name="general-tomfoolery", type=discord.ChannelType.text)
+        tosend = ""
+        print("post channel get check")
+        if who == "M":
+            print("m")
+            for i in server.roles: # Mentions online members
+                if i.name == "ZE MEMBERS":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "E":
+            print("e")
+            for i in server.roles: # Mentions online members + temp-members
+                if i.name == "ZE MEMBERS":
+                    tosend += "<@&" + str(i.id) + "> "
+                elif i.name == "TEMP MEMBERS":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "S":
+            print("s")
+            for i in server.roles: # Mentions streamer role
+                if i.name == "Streamers":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "W":
+            print("w")
+            for i in server.roles: # Mentions weebs
+                if i.name == "Weebs":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "A":
+            print("a")
+            for i in server.roles: # Mentions artists
+                if i.name == "Artists":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "N":
+            print("n")
+            # @ Nobody
+            tosend += ""
+        else:
+            print("invalid group arg raise")
+            raise IndexError("Invalid argument supplied")
+        print("4")
+        tosend += "<@" + str(message.author.id) + "> is streaming in " + str(streamMinutes) + " minutes!"
+        tosend += "\nGo Support them at: " + streamlink
+        await channel.send(tosend)
+        todelete = channel.last_message
+        await todelete.delete(delay=float(deleteMinutes))
 
-        except TypeError():
-            print("timedMessage - type conversion error for minutes given")
-            await message.channel.send("Please put numbers in for how many minutes "
-                                       "to wait until the message should be delted"
-                                       "see the } help command for how to use the STREAMANNOUNCE command")
-
-        except IndexError():
-            print("timedMessage - invalid argument supplied")
-            await message.channel.send("Please enter a valid group to specify"
-                                       "see } help for what roles you can mention with the STREAMANNOUNCE command.")
-
-        except discord.HTTPException():
-            print("timedMessage - http error from delayed message deletion")
-            await message.channel.send("Sorry, Discord couldn't delete your announcement after the alloted time")
 
 
 # ---[ Run Bot ]---
