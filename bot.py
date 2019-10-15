@@ -469,7 +469,6 @@ async def getSteamID(arg_list, message):
 async def timedmessage(arg_list, message):
     # Create a message, delete after given time
     # check arguments
-    print("1")
     if len(arg_list) < 5:
         print("timedMessage - not enough arguments given")
         await message.channel.send("please give more arguments")
@@ -483,41 +482,47 @@ async def timedmessage(arg_list, message):
         streamMinutes = arg_list[3]
         streamlink = arg_list[4]
         streamlink = streamlink.lower()
-        print("2")
         try:
-            print("3")
             deleteMinutes = float(deleteMinutes)
             deleteMinutes *= 60
             await message.channel.send("Sending message to #general-tomfoolery")
             server = message.guild
             channel = discord.utils.get(server.channels, name="general-tomfoolery", type=discord.ChannelType.text)
             tosend = ""
+            print("post channel get check")
             if who == "M":
+                print("m")
                 for i in server.roles: # Mentions online members
                     if i.name == "ZE MEMBERS":
                         tosend += "<@&" + str(i.id) + ">\n"
             elif who == "E":
+                print("e")
                 for i in server.roles: # Mentions online members + temp-members
                     if i.name == "ZE MEMBERS":
                         tosend += "<@&" + str(i.id) + "> "
                     elif i.name == "TEMP MEMBERS":
                         tosend += "<@&" + str(i.id) + ">\n"
             elif who == "S":
+                print("s")
                 for i in server.roles: # Mentions streamer role
                     if i.name == "Streamers":
                         tosend += "<@&" + str(i.id) + ">\n"
             elif who == "W":
+                print("w")
                 for i in server.roles: # Mentions weebs
                     if i.name == "Weebs":
                         tosend += "<@&" + str(i.id) + ">\n"
             elif who == "A":
+                print("a")
                 for i in server.roles: # Mentions artists
                     if i.name == "Artists":
                         tosend += "<@&" + str(i.id) + ">\n"
             elif who == "N":
+                print("n")
                 # @ Nobody
                 tosend += ""
             else:
+                print("invalid group arg raise")
                 raise IndexError("Invalid argument supplied")
             print("4")
             tosend += "<@" + str(message.author.id) + "> is streaming in " + str(streamMinutes) + " minutes!"
