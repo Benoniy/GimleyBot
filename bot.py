@@ -11,20 +11,18 @@ import requests
 from requests.exceptions import HTTPError
 import json
 from steam import SteamID
-import time
-import _thread
 
 # ---[ Bot Setup ]---
-
+'''
 # Actual bot token
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
-
 '''
+
 # Testing bot token
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
-'''
+
 
 rates = 0
 
@@ -482,12 +480,13 @@ async def timedmessage(arg_list, message):
         # check time
         who = arg_list[1]
         deleteMinutes = arg_list[2]
-	deleteMinutes *= 60
         streamMinutes = arg_list[3]
         streamlink = arg_list[4]
         streamlink = streamlink.lower()
         try:
-            deleteMinutes = int(deleteMinutes)
+            deleteMinutes = float(deleteMinutes)
+            deleteMinutes *= 60
+            print(deleteMinutes)
             await message.channel.send("Sending message to #general-tomfoolery")
             server = message.guild
             channel = discord.utils.get(server.channels, name="general-tomfoolery", type=discord.ChannelType.text)
