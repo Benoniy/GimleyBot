@@ -485,7 +485,6 @@ async def timedmessage(arg_list, message):
         try:
             deleteMinutes = float(deleteMinutes)
             deleteMinutes *= 60
-            print(deleteMinutes)
             await message.channel.send("Sending message to #general-tomfoolery")
             server = message.guild
             channel = discord.utils.get(server.channels, name="general-tomfoolery", type=discord.ChannelType.text)
@@ -533,10 +532,6 @@ async def timedmessage(arg_list, message):
             print("timedMessage - invalid argument supplied")
             await message.channel.send("Please enter a valid group to specify"
                                        "see } help for what roles you can mention with the STREAMANNOUNCE command.")
-
-        except discord.HTTPException():
-            print("timedMessage - http error from delayed message deletion")
-            await message.channel.send("Sorry, Discord couldn't delete your announcement after the alloted time")
 
 
 # ---[ Run Bot ]---
