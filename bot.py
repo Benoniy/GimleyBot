@@ -469,6 +469,7 @@ async def getSteamID(arg_list, message):
 async def timedmessage(arg_list, message):
     # Create a message, delete after given time
     # check arguments
+    print("1")
     if len(arg_list) < 5:
         print("timedMessage - not enough arguments given")
         await message.channel.send("please give more arguments")
@@ -482,7 +483,9 @@ async def timedmessage(arg_list, message):
         streamMinutes = arg_list[3]
         streamlink = arg_list[4]
         streamlink = streamlink.lower()
+        print("2")
         try:
+            print("3")
             deleteMinutes = float(deleteMinutes)
             deleteMinutes *= 60
             await message.channel.send("Sending message to #general-tomfoolery")
@@ -516,6 +519,7 @@ async def timedmessage(arg_list, message):
                 tosend += ""
             else:
                 raise IndexError("Invalid argument supplied")
+            print("4")
             tosend += "<@" + str(message.author.id) + "> is streaming in " + str(streamMinutes) + " minutes!"
             tosend += "\nGo Support them at: " + streamlink
             await channel.send(tosend)
