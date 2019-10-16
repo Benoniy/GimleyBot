@@ -503,6 +503,7 @@ async def timedmessage(arg_list, message):
         deleteMinutes *= 60
         await message.channel.send("Sending message to #general-tomfoolery")
         server = message.guild
+        print("pre channel get check")
         channel = discord.utils.get(server.channels, name="general-tomfoolery", type=discord.ChannelType.text)
         tosend = ""
         print("post channel get check")
@@ -546,8 +547,6 @@ async def timedmessage(arg_list, message):
         await channel.send(tosend)
         todelete = channel.last_message
         await todelete.delete(delay=float(deleteMinutes))
-
-
 
 # ---[ Run Bot ]---
 client.run(TOKEN)
