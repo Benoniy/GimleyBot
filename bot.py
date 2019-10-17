@@ -583,7 +583,7 @@ async def timedevent(arg_list, message):
         gameName = gameName.lower()
         ip = None
         if len(arg_list) == 6:
-            ip = arg_list[6]
+            ip = arg_list[5]
         deleteMinutes = float(deleteMinutes)
         deleteMinutes *= 60
         await message.channel.send("Sending game announcement to #general-tomfoolery")
@@ -618,10 +618,10 @@ async def timedevent(arg_list, message):
         else:
             print("invalid group arg raise")
             raise IndexError("Invalid argument supplied")
-        tosend += "<@" + str(message.author.id) + "> would like to announce a game-event for: " + gameName
-        tosend += "\nWill be starting in: " + str(eventMinutes)
+        tosend += "<@" + str(message.author.id) + "> would like to announce a game-event for: **" + gameName + "**"
+        tosend += "\nThe game starts in: " + str(eventMinutes) + " minutes!"
         if ip is not None:
-            tosend += "\nYou can join in at: **" + ip + "**"
+            tosend += "\nServer IP: *" + ip + "*"
         await channel.send(tosend)
         todelete = channel.last_message
         await todelete.delete(delay=float(deleteMinutes))
