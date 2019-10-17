@@ -240,6 +240,27 @@ async def on_message(message):
                 print("streamannounce - http errror")
                 await message.channel.send("It seems the message could not be deleted after the specified time.")
 
+        elif BOT_PREFIX + "EVENTANNOUNCE" in arg_list[0]:
+            try:
+                await timedevent(arg_list, message)
+            except TypeError():
+                print("streamannounce - type error")
+                await message.channel.send("Please put in a number for how many minutes until the message is deleted")
+
+            except IndexError():
+                print("streamannounce - index error")
+                await message.channel.send("Please put in a valid value for the roles you wish to tag. "
+                                           "Remember this is a single character and you can only specify one.")
+
+            except discord.Forbidden():
+                print("streamannounce - forbidden error")
+                await message.channel.send("Please request the help of a Mod, "
+                                           "there seems to be a role error with this Bot")
+
+            except discord.HTTPException():
+                print("streamannounce - http errror")
+                await message.channel.send("It seems the message could not be deleted after the specified time.")
+
 # ---[ Bot Commands ]---
 
 
@@ -293,8 +314,11 @@ async def send_help(message):
                        "@user - shark selection for depth\n}insult @user - insults a user"
                        "\n}threaten @ user - threatens a user\n}seduce @user - seduces a user"
                        "\n}convert USD GBP amount - converts an amount from one currency to another"
-                       "\n}streamannounce (role) (minutes to delete in) (how many minutes till you stream) (stream link)"
-                       "\nThe roles for stream announce are: **M** - Members, **E** - Members + Temp Members"
+                       "\n}streamannounce (role) (minutes to delete in) (how many minutes till you stream) "
+                       "(stream link)"
+                       "\n}eventannounce (role) (minutes to delete in) (how many minutes till event start) "
+                       "(game name) (server ip - optional)"
+                       "\nThe roles for stream & event announce are: **M** - Members, **E** - Members + Temp Members"
                        ", **W** - Weebs, **S** - Streamers, **A** - Artists, **N** - Won't mention anyone!"
                        "\nNote: You can only mention one of these per announcement - so choose wisely")
 
@@ -485,7 +509,7 @@ async def getSteamID(arg_list, message):
 
 
 async def timedmessage(arg_list, message):
-    # Create a message, delete after given time
+    # Create a Stream Announcement, delete after given time
     # check arguments
     if len(arg_list) < 5:
         print("timedMessage - not enough arguments given")
@@ -502,7 +526,7 @@ async def timedmessage(arg_list, message):
         streamlink = streamlink.lower()
         deleteMinutes = float(deleteMinutes)
         deleteMinutes *= 60
-        await message.channel.send("Sending message to #general-tomfoolery")
+        await message.channel.send("Sending stream announcement to #general-tomfoolery")
         server = message.guild
         channel = discord.utils.get(server.text_channels, name="general-tomfoolery")
         tosend = ""
@@ -536,6 +560,68 @@ async def timedmessage(arg_list, message):
             raise IndexError("Invalid argument supplied")
         tosend += "<@" + str(message.author.id) + "> is streaming in " + str(streamMinutes) + " minutes!"
         tosend += "\nGo Support them at: " + streamlink
+        await channel.send(tosend)
+        todelete = channel.last_message
+        await todelete.delete(delay=float(deleteMinutes))
+
+
+async def timedevent(arg_list, message):
+    # Create an Event Announcement, delete after given time
+    # check arguments
+    if len(arg_list) < 5:
+        print("timedMessage - not enough arguments given")
+        await message.channel.send("please give more arguments")
+    elif len(arg_list) > 6:
+        print("timedMessage - too many arguments given")
+        await message.channel.send("please give fewer arguments")
+    else:
+        # check time
+        who = arg_list[1]
+        deleteMinutes = arg_list[2]
+        eventMinutes = arg_list[3]
+        gameName = arg_list[4]
+        gameName = gameName.lower()
+        ip = None
+        if len(arg_list) == 6:
+            ip = arg_list[6]
+        deleteMinutes = float(deleteMinutes)
+        deleteMinutes *= 60
+        await message.channel.send("Sending game announcement to #general-tomfoolery")
+        server = message.guild
+        channel = discord.utils.get(server.text_channels, name="general-tomfoolery")
+        tosend = ""
+        if who == "M":
+            for i in server.roles:  # Mentions online members
+                if i.name == "ZE MEMBERS":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "E":
+            for i in server.roles:  # Mentions online members + temp-members
+                if i.name == "ZE MEMBERS":
+                    tosend += "<@&" + str(i.id) + "> "
+                elif i.name == "TEMP MEMBERS":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "S":
+            for i in server.roles:  # Mentions streamer role
+                if i.name == "Streamers":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "W":
+            for i in server.roles:  # Mentions weebs
+                if i.name == "Weebs":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "A":
+            for i in server.roles:  # Mentions artists
+                if i.name == "Artists":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "N":
+            # @ Nobody
+            tosend += ""
+        else:
+            print("invalid group arg raise")
+            raise IndexError("Invalid argument supplied")
+        tosend += "<@" + str(message.author.id) + "> would like to announce a game-event for: " + gameName
+        tosend += "\nWill be starting in: " + str(eventMinutes)
+        if ip is not None:
+            tosend += "\nYou can join in at: **" + ip + "**"
         await channel.send(tosend)
         todelete = channel.last_message
         await todelete.delete(delay=float(deleteMinutes))
