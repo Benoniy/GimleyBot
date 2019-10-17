@@ -504,9 +504,7 @@ async def timedmessage(arg_list, message):
         deleteMinutes *= 60
         await message.channel.send("Sending message to #general-tomfoolery")
         server = message.guild
-        print("pre channel get check")
         channel = discord.utils.get(server.text_channels, name="general-tomfoolery")
-        print("post channel get check")
         tosend = ""
         if who == "M":
             for i in server.roles: # Mentions online members
