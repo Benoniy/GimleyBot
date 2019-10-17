@@ -13,6 +13,7 @@ import json
 from steam import SteamID
 
 # ---[ Bot Setup ]---
+
 # Actual bot token
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
@@ -504,44 +505,37 @@ async def timedmessage(arg_list, message):
         await message.channel.send("Sending message to #general-tomfoolery")
         server = message.guild
         print("pre channel get check")
-        channel = discord.utils.get(server.channels, name="general-tomfoolery", type=discord.ChannelType.text)
-        tosend = ""
+        channel = discord.utils.get(server.text_channels, name="general-tomfoolery")
         print("post channel get check")
+        tosend = ""
         if who == "M":
-            print("m")
             for i in server.roles: # Mentions online members
                 if i.name == "ZE MEMBERS":
                     tosend += "<@&" + str(i.id) + ">\n"
         elif who == "E":
-            print("e")
             for i in server.roles: # Mentions online members + temp-members
                 if i.name == "ZE MEMBERS":
                     tosend += "<@&" + str(i.id) + "> "
                 elif i.name == "TEMP MEMBERS":
                     tosend += "<@&" + str(i.id) + ">\n"
         elif who == "S":
-            print("s")
             for i in server.roles: # Mentions streamer role
                 if i.name == "Streamers":
                     tosend += "<@&" + str(i.id) + ">\n"
         elif who == "W":
-            print("w")
             for i in server.roles: # Mentions weebs
                 if i.name == "Weebs":
                     tosend += "<@&" + str(i.id) + ">\n"
         elif who == "A":
-            print("a")
             for i in server.roles: # Mentions artists
                 if i.name == "Artists":
                     tosend += "<@&" + str(i.id) + ">\n"
         elif who == "N":
-            print("n")
             # @ Nobody
             tosend += ""
         else:
             print("invalid group arg raise")
             raise IndexError("Invalid argument supplied")
-        print("4")
         tosend += "<@" + str(message.author.id) + "> is streaming in " + str(streamMinutes) + " minutes!"
         tosend += "\nGo Support them at: " + streamlink
         await channel.send(tosend)
