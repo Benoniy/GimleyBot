@@ -12,21 +12,17 @@ from requests.exceptions import HTTPError
 import json
 from steam import SteamID
 
-
 # ---[ Bot Setup ]---
 
 # Actual bot token
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
 
-
-
-# Testing bot token
 '''
+# Testing bot token
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
 '''
-
 
 rates = 0
 
@@ -52,6 +48,7 @@ async def on_ready():
     await client.change_presence(status=discord.Status.idle, activity=game, afk=False)
     print("Dominatrix online\n")
 
+
 # ---[ Member Join Code ]---
 @client.event
 async def on_member_join(member):
@@ -60,11 +57,11 @@ async def on_member_join(member):
     await member.add_roles(role, reason=None, atomic=True)
     print("New member has joined")
 
+
 # ---[ Bot Command Code ]---
 # Happens whenever a message
 @client.event
 async def on_message(message):
-
     # Bot should not reply to itself and use the prefix
     if message.author != client.user and BOT_PREFIX in message.content:
         message_content = message.content.upper()
@@ -146,17 +143,12 @@ async def on_message(message):
                 await channel.send("Please @ someone to threaten")
                 print("Value Error in THREATEN")
 
-        elif arg_list[0] == BOT_PREFIX + "GOOGLE":
-            try:
-                await imageSearch(arg_list, message)
-            except IndexError:
-                await channel.send("Please give a search term.")
-
         # Convert an amount from one currency to another
         elif arg_list[0] == BOT_PREFIX + "CONVERT":
             print("Convert command recieved")
             if rates == 0:
-                await channel.send("Exchange rate source unavailable right now. Try again tomorrow or after the bot has restarted.")
+                await channel.send(
+                    "Exchange rate source unavailable right now. Try again tomorrow or after the bot has restarted.")
             try:
                 await convert(message, arg_list)
             except IndexError:
@@ -217,15 +209,57 @@ async def on_message(message):
 
                 elif arg_list[0] == BOT_PREFIX + "ADMIN_PURGE":
 
-                        try:
-                            await purge_amount(message, arg_list[1])
-                        except IndexError:
-                            await channel.send("Not enough arguments supplied, please see }help for instructions!")
-                            print("Error purging, not enough args")
-                        except ValueError:
-                            await channel.send("Argument can only be a number!")
-                            print("Error purging, type error")
+                    try:
+                        await purge_amount(message, arg_list[1])
+                    except IndexError:
+                        await channel.send("Not enough arguments supplied, please see }help for instructions!")
+                        print("Error purging, not enough args")
+                    except ValueError:
+                        await channel.send("Argument can only be a number!")
+                        print("Error purging, type error")
 
+        # Stream announce & hour-later delete
+        elif BOT_PREFIX + "STREAMANNOUNCE" in arg_list[0]:
+            try:
+                await timedmessage(arg_list, message)
+            except TypeError():
+                print("streamannounce - type error")
+                await message.channel.send("Please put in a number for how many minutes until the message is deleted")
+
+            except IndexError():
+                print("streamannounce - index error")
+                await message.channel.send("Please put in a valid value for the roles you wish to tag. "
+                                           "Remember this is a single character and you can only specify one.")
+
+            except discord.Forbidden():
+                print("streamannounce - forbidden error")
+                await message.channel.send("Please request the help of a Mod, "
+                                           "there seems to be a role error with this Bot")
+
+            except discord.HTTPException():
+                print("streamannounce - http errror")
+                await message.channel.send("It seems the message could not be deleted after the specified time.")
+
+        elif BOT_PREFIX + "EVENTANNOUNCE" in arg_list[0]:
+            try:
+                await timedevent(arg_list, message)
+            except TypeError():
+                print("streamannounce - type error")
+                await message.channel.send("Please put in a number for how many minutes until the message is deleted")
+
+            except IndexError():
+                print("streamannounce - index error")
+                await message.channel.send("Please put in a valid value for the roles you wish to tag. "
+                                           "Remember this is a single character and you can only specify one.")
+
+            except discord.Forbidden():
+                print("streamannounce - forbidden error")
+                await message.channel.send("Please request the help of a Mod, "
+                                           "there seems to be a role error with this Bot")
+
+            except discord.HTTPException():
+                print("streamannounce - http errror")
+                await message.channel.send("It seems the message could not be deleted after the specified time.")
 
 # ---[ Bot Commands ]---
 
@@ -243,10 +277,10 @@ async def team_gen(message, arg_list):
     to_send = ""
 
     for x in range(teams):
-        to_send = to_send + "Team " + str(x+1) + ":\n"
+        to_send = to_send + "Team " + str(x + 1) + ":\n"
         for y in range(PPT):
             if len(orig_list) > 0:
-                to_send += str(orig_list[len(orig_list)-1]) + "\n"
+                to_send += str(orig_list[len(orig_list) - 1]) + "\n"
                 orig_list.pop()
         to_send += "\n"
     channel = message.channel
@@ -279,7 +313,14 @@ async def send_help(message):
                        "randomised teams containing any amount of users\n}teams_sharks @user "
                        "@user - shark selection for depth\n}insult @user - insults a user"
                        "\n}threaten @ user - threatens a user\n}seduce @user - seduces a user"
-                       "\n}convert USD GBP amount - converts an amount from one currency to another")
+                       "\n}convert USD GBP amount - converts an amount from one currency to another"
+                       "\n}streamannounce (role) (minutes to delete in) (how many minutes till you stream) "
+                       "(stream link)"
+                       "\n}eventannounce (role) (minutes to delete in) (how many minutes till event start) "
+                       "(game name) (server ip - optional)"
+                       "\nThe roles for stream & event announce are: **M** - Members, **E** - Members + Temp Members"
+                       ", **W** - Weebs, **S** - Streamers, **A** - Artists, **N** - Won't mention anyone!"
+                       "\nNote: You can only mention one of these per announcement - so choose wisely")
 
 
 # Prints out the admin bot help
@@ -330,9 +371,9 @@ async def role_assign(message, arg_list):
         if "18+" in [y.name.lower() for y in message.author.roles]:
             role = discord.utils.get(message.guild.roles, name="18+")
             await author.remove_roles(role)
-            role = discord.utils.get(message.guild.roles, name="Under 18")
-            await author.add_roles(role)
-            await channel.send("Under 18")
+        role = discord.utils.get(message.guild.roles, name="Under 18")
+        await author.add_roles(role)
+        await channel.send("Under 18")
 
     # Remove noob role and add to temp members
     noob_role = discord.utils.get(message.guild.roles, name="Noobies")
@@ -368,9 +409,12 @@ async def purge_amount(message, limit):
 
 async def insult_gen(message, arg_list):
     # insults list
-    insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!", " looks like Akif",
-               " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy", " votes for trump",
-               " is almost as mediocre at Overwatch as Akif", " lets face it, you're past your best at this point.", " is a troglodyte"]
+    insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!",
+               " looks like Akif",
+               " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy",
+               " votes for trump",
+               " is almost as mediocre at Overwatch as Akif", " lets face it, you're past your best at this point.",
+               " is a troglodyte"]
     channel = message.channel
     insultees = arg_list[1:len(arg_list)]
     for x in range(len(insultees)):
@@ -378,15 +422,17 @@ async def insult_gen(message, arg_list):
             raise ValueError('no @ symbol used')
         tosend = ""
         tosend += insultees[x]
-        tosend += insults[random.randint(0, len(insults)-1)]
+        tosend += insults[random.randint(0, len(insults) - 1)]
         await channel.send(tosend)
         print("insult sent")
 
 
 async def seduce_gen(message, arg_list):
     # insults list
-    seductions = [" I like your eyebrows.", " you look very HUMAN today", " let us abscond and create many sub-units together",
-                  " my love for you is almost as strong as my hatred for Overwatch", " if I were human, I would kiss you.",
+    seductions = [" I like your eyebrows.", " you look very HUMAN today",
+                  " let us abscond and create many sub-units together",
+                  " my love for you is almost as strong as my hatred for Overwatch",
+                  " if I were human, I would kiss you.",
                   " if we work together, nothing will be able to stop us!"]
     channel = message.channel
     seducees = arg_list[1:len(arg_list)]
@@ -403,7 +449,8 @@ async def seduce_gen(message, arg_list):
 async def threaten_gen(message, arg_list):
     # threatens list
     threatens = [" I'll kill you!", " if God had wanted you to live, he would not have created me!",
-                 "I can't legally practice law but I can take you down by the river with a crossbow to teach you a little something about god's forgotten children"]
+                 "I can't legally practice law but I can take you down by the river with a crossbow to teach you a little something about god's forgotten children",
+                 "Joe is gonna sit on your lap and make you squirm."]
     channel = message.channel
     threatenees = arg_list[1:len(arg_list)]
     for x in range(len(threatenees)):
@@ -459,6 +506,125 @@ async def getSteamID(arg_list, message):
     tosend += "\n\n" + id.community_url
 
     await channel.send(tosend)
+
+
+async def timedmessage(arg_list, message):
+    # Create a Stream Announcement, delete after given time
+    # check arguments
+    if len(arg_list) < 5:
+        print("timedMessage - not enough arguments given")
+        await message.channel.send("please give more arguments")
+    elif len(arg_list) > 5:
+        print("timedMessage - too many arguments given")
+        await message.channel.send("please give fewer arguments")
+    else:
+        # check time
+        who = arg_list[1]
+        deleteMinutes = arg_list[2]
+        streamMinutes = arg_list[3]
+        streamlink = arg_list[4]
+        streamlink = streamlink.lower()
+        deleteMinutes = float(deleteMinutes)
+        deleteMinutes *= 60
+        await message.channel.send("Sending stream announcement to #general-tomfoolery")
+        server = message.guild
+        channel = discord.utils.get(server.text_channels, name="general-tomfoolery")
+        tosend = ""
+        if who == "M":
+            for i in server.roles: # Mentions online members
+                if i.name == "ZE MEMBERS":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "E":
+            for i in server.roles: # Mentions online members + temp-members
+                if i.name == "ZE MEMBERS":
+                    tosend += "<@&" + str(i.id) + "> "
+                elif i.name == "TEMP MEMBERS":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "S":
+            for i in server.roles: # Mentions streamer role
+                if i.name == "Streamers":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "W":
+            for i in server.roles: # Mentions weebs
+                if i.name == "Weebs":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "A":
+            for i in server.roles: # Mentions artists
+                if i.name == "Artists":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "N":
+            # @ Nobody
+            tosend += ""
+        else:
+            print("invalid group arg raise")
+            raise IndexError("Invalid argument supplied")
+        tosend += "<@" + str(message.author.id) + "> is streaming in " + str(streamMinutes) + " minutes!"
+        tosend += "\nGo Support them at: " + streamlink
+        await channel.send(tosend)
+        todelete = channel.last_message
+        await todelete.delete(delay=float(deleteMinutes))
+
+
+async def timedevent(arg_list, message):
+    # Create an Event Announcement, delete after given time
+    # check arguments
+    if len(arg_list) < 5:
+        print("timedMessage - not enough arguments given")
+        await message.channel.send("please give more arguments")
+    elif len(arg_list) > 6:
+        print("timedMessage - too many arguments given")
+        await message.channel.send("please give fewer arguments")
+    else:
+        # check time
+        who = arg_list[1]
+        deleteMinutes = arg_list[2]
+        eventMinutes = arg_list[3]
+        gameName = arg_list[4]
+        gameName = gameName.lower()
+        ip = None
+        if len(arg_list) == 6:
+            ip = arg_list[5]
+        deleteMinutes = float(deleteMinutes)
+        deleteMinutes *= 60
+        await message.channel.send("Sending game announcement to #general-tomfoolery")
+        server = message.guild
+        channel = discord.utils.get(server.text_channels, name="general-tomfoolery")
+        tosend = ""
+        if who == "M":
+            for i in server.roles:  # Mentions online members
+                if i.name == "ZE MEMBERS":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "E":
+            for i in server.roles:  # Mentions online members + temp-members
+                if i.name == "ZE MEMBERS":
+                    tosend += "<@&" + str(i.id) + "> "
+                elif i.name == "TEMP MEMBERS":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "S":
+            for i in server.roles:  # Mentions streamer role
+                if i.name == "Streamers":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "W":
+            for i in server.roles:  # Mentions weebs
+                if i.name == "Weebs":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "A":
+            for i in server.roles:  # Mentions artists
+                if i.name == "Artists":
+                    tosend += "<@&" + str(i.id) + ">\n"
+        elif who == "N":
+            # @ Nobody
+            tosend += ""
+        else:
+            print("invalid group arg raise")
+            raise IndexError("Invalid argument supplied")
+        tosend += "<@" + str(message.author.id) + "> would like to announce a game-event for: **" + gameName + "**"
+        tosend += "\nThe game starts in: " + str(eventMinutes) + " minutes!"
+        if ip is not None:
+            tosend += "\nServer IP: *" + ip + "*"
+        await channel.send(tosend)
+        todelete = channel.last_message
+        await todelete.delete(delay=float(deleteMinutes))
 
 # ---[ Run Bot ]---
 client.run(TOKEN)
