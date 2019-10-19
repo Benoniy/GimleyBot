@@ -639,7 +639,7 @@ async def timedevent(arg_list, message):
         await todelete.delete(delay=float(deleteMinutes))
 
 
-def giverole(arg_list, message):
+async def giverole(arg_list, message):
     # Give tertiary roles i.e. Destiny
     channel = message.channel
     server = message.guild
@@ -650,30 +650,28 @@ def giverole(arg_list, message):
     for i in range(1, len(arg_list)):
         if arg_list[i] == "ARTISTS" or arg_list[i] == "ARTIST":
             # Give artist role
-            user.add_roles(discord.utils.get(server.roles, name="Artists"))
+            await user.add_roles(discord.utils.get(server.roles, name="Artists"))
         elif arg_list[i] == "WEEB" or arg_list[i] == "WEEBZ" or arg_list[i] == "WEEBS":
             # Give weebs role
-            user.add_roles(discord.utils.get(server.roles, name="Weebs"))
+            await user.add_roles(discord.utils.get(server.roles, name="Weebs"))
         elif arg_list[i] == "STREAMERS" or arg_list[i] == "STREAMER":
             # Give streamers role
-            user.add_roles(discord.utils.get(server.roles, name="Streamers"))
+            await user.add_roles(discord.utils.get(server.roles, name="Streamers"))
         elif arg_list[i] == "LGBT" or arg_list[i] == "GAY":
             # Give LGBT role
-            user.add_roles(discord.utils.get(server.roles, name="LGBT"))
+            await user.add_roles(discord.utils.get(server.roles, name="LGBT"))
         elif arg_list[i] == "OVERWATCH" or arg_list[i] == "OVERWATCHERS":
             # Give overwatchers role
-            user.add_roles(discord.utils.get(server.roles, name="overwatchers"))
+            await user.add_roles(discord.utils.get(server.roles, name="overwatchers"))
         elif arg_list[i] == "DESTINY" or arg_list[i] == "DESTINY2":
-            # Give Destiny 2 role
-            if arg_list[i] == "DESTINY" and len(arg_list) > (i + 1):
-                # Weird code snippet bc Destiny 2 role name has a space in it
-                if arg_list[i+1] == "2":
-                    i += 1
-                user.add_roles(discord.utils.get(server.roles, name="Destiny 2"))
+            # Give destiny role
+            await user.add_roles(discord.utils.get(server.roles, name="Destiny 2"))
+        elif arg_list[i] == "2":
+            print()
         else:
             await channel.send("That doesn't appear to be a valid role. "
                                "If you think this is an error, please contact a Moderator.")
-        await channel.send("Role(s) added.")
+    await channel.send("Role(s) added.")
 
 # ---[ Run Bot ]---
 client.run(TOKEN)
