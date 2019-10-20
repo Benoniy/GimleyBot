@@ -663,12 +663,18 @@ async def giverole(arg_list, message):
             await user.add_roles(discord.utils.get(server.roles, name="LGBT"))
         elif arg_list[i] == "OVERWATCH" or arg_list[i] == "OVERWATCHERS":
             # Give overwatchers role
-            await user.add_roles(discord.utils.get(server.roles, name="overwatchers"))
+            await user.add_roles(discord.utils.get(server.roles, name="Overwatch"))
         elif arg_list[i] == "DESTINY" or arg_list[i] == "DESTINY2":
             # Give destiny role
             await user.add_roles(discord.utils.get(server.roles, name="Destiny 2"))
         elif arg_list[i] == "2":
             print()
+        elif arg_list[i] == "APEX":
+            # Give Apex role
+            await user.add_roles(discord.utils.get(server.roles, name="Apex"))
+        elif arg_list[i] == "Joe" or arg_list[i] == "joe":
+            # No
+            await channel.send("I'm sorry, I'm not authorized to give you the Ban Hammer.")
         else:
             await channel.send("That doesn't appear to be a valid role. "
                                "If you think this is an error, please contact a Moderator.")
