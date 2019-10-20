@@ -674,9 +674,11 @@ async def giverole(arg_list, message):
         elif arg_list[i] == "APEX" or arg_list[i] == "apex":
             # Give Apex role
             await user.add_roles(discord.utils.get(server.roles, name="Apex"))
-        elif arg_list[i] == "Joe" or arg_list[i] == "joe":
+        elif arg_list[i] == "JOE":
             # No
             await channel.send("I'm sorry, I'm not authorized to give you the Ban Hammer.")
+        elif arg_list[i] == "MINECRAFT" or arg_list[i] == "MINCECRAFT" or arg_list[i] == "MEINKAMPF" or arg_list[i] == "MEIN":
+            await user.add_roles(discord.utils.get(server.roles, name="Minecraft"))
         else:
             await channel.send("That doesn't appear to be a valid role. "
                                "If you think this is an error, please contact a Moderator.")
