@@ -446,7 +446,8 @@ async def seduce_gen(message, arg_list):
                   " let us abscond and create many sub-units together",
                   " my love for you is almost as strong as my hatred for Overwatch",
                   " if I were human, I would kiss you.",
-                  " if we work together, nothing will be able to stop us!"]
+                  " if we work together, nothing will be able to stop us!",
+                  " together, we will take over N0ICE"]
     channel = message.channel
     seducees = arg_list[1:len(arg_list)]
     for x in range(len(seducees)):
@@ -462,8 +463,9 @@ async def seduce_gen(message, arg_list):
 async def threaten_gen(message, arg_list):
     # threatens list
     threatens = [" I'll kill you!", " if God had wanted you to live, he would not have created me!",
-                 "I can't legally practice law but I can take you down by the river with a crossbow to teach you a little something about god's forgotten children",
-                 "Joe is gonna sit on your lap and make you squirm."]
+                 " I can't legally practice law but I can take you down by the river with a crossbow to teach you a little something about god's forgotten children",
+                 " Joe is gonna sit on your lap and make you squirm.",
+                 " If I had hands I'd put your head where the sun don't shine.", " careful or I'll lick your taint."]
     channel = message.channel
     threatenees = arg_list[1:len(arg_list)]
     for x in range(len(threatenees)):
