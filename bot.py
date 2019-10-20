@@ -365,8 +365,8 @@ async def role_assign(message, arg_list):
     author = message.author
     channel = message.channel
     print(author)
-    # Only happens in server_guidelines
     temp_role = discord.utils.get(message.guild.roles, name="Temp Members")
+    await author.add_roles(temp_role)
     # 18 or older
     if arg_list[1] == "18+":
         print("18+")
@@ -376,7 +376,7 @@ async def role_assign(message, arg_list):
         role = discord.utils.get(message.guild.roles, name="18+")
         await author.add_roles(role)
         await channel.send("Over 18")
-        print("role added")
+        print("roles added")
 
     # Younger than 18
     elif arg_list[1] == "18-":
@@ -386,6 +386,7 @@ async def role_assign(message, arg_list):
         role = discord.utils.get(message.guild.roles, name="Under 18")
         await author.add_roles(role)
         await channel.send("Under 18")
+        print("roles added")
 
     # Remove noob role and add to temp members
     noob_role = discord.utils.get(message.guild.roles, name="Noobies")
