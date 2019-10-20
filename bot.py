@@ -671,7 +671,7 @@ async def giverole(arg_list, message):
             await user.add_roles(discord.utils.get(server.roles, name="Destiny 2"))
         elif arg_list[i] == "2":
             print()
-        elif arg_list[i] == "APEX":
+        elif arg_list[i] == "APEX" or arg_list[i] == "apex":
             # Give Apex role
             await user.add_roles(discord.utils.get(server.roles, name="Apex"))
         elif arg_list[i] == "Joe" or arg_list[i] == "joe":
