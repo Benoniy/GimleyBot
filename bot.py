@@ -261,6 +261,16 @@ async def on_message(message):
                 print("streamannounce - http errror")
                 await message.channel.send("It seems the message could not be deleted after the specified time.")
 
+        elif BOT_PREFIX + "GIMME" in arg_list[0]:
+            try:
+                await giverole(arg_list, message)
+
+            except IndexError():
+                print("gimme - index error")
+
+            except TypeError():
+                print("gimme - type error")
+
 # ---[ Bot Commands ]---
 
 
@@ -314,13 +324,15 @@ async def send_help(message):
                        "@user - shark selection for depth\n}insult @user - insults a user"
                        "\n}threaten @ user - threatens a user\n}seduce @user - seduces a user"
                        "\n}convert USD GBP amount - converts an amount from one currency to another"
-                       "\n}streamannounce (role) (minutes to delete in) (how many minutes till you stream) "
+                       "\n}streamannounce (role) (minutes to delete in) (game you are streaming) "
                        "(stream link)"
                        "\n}eventannounce (role) (minutes to delete in) (how many minutes till event start) "
                        "(game name) (server ip - optional)"
                        "\nThe roles for stream & event announce are: **M** - Members, **E** - Members + Temp Members"
                        ", **W** - Weebs, **S** - Streamers, **A** - Artists, **N** - Won't mention anyone!"
-                       "\nNote: You can only mention one of these per announcement - so choose wisely")
+                       "\nNote: You can only mention one of these per announcement - so choose wisely"
+                       "\n}Gimme - gives you roles such as 'artists' (Not Membership roles!)"
+                       "\nUsage example: }Gimme artists")
 
 
 # Prints out the admin bot help
@@ -353,18 +365,18 @@ async def role_assign(message, arg_list):
     author = message.author
     channel = message.channel
     print(author)
-    # Only happens in server_guidelines
     temp_role = discord.utils.get(message.guild.roles, name="Temp Members")
+    await author.add_roles(temp_role)
     # 18 or older
     if arg_list[1] == "18+":
         print("18+")
-        if "18-" in [y.name.lower() for y in message.author.roles]:
+        if "Under 18" in [y.name.lower() for y in message.author.roles]:
             role = discord.utils.get(message.guild.roles, name="Under 18")
             await author.remove_roles(role)
         role = discord.utils.get(message.guild.roles, name="18+")
         await author.add_roles(role)
         await channel.send("Over 18")
-        print("role added")
+        print("roles added")
 
     # Younger than 18
     elif arg_list[1] == "18-":
@@ -374,6 +386,7 @@ async def role_assign(message, arg_list):
         role = discord.utils.get(message.guild.roles, name="Under 18")
         await author.add_roles(role)
         await channel.send("Under 18")
+        print("roles added")
 
     # Remove noob role and add to temp members
     noob_role = discord.utils.get(message.guild.roles, name="Noobies")
@@ -433,7 +446,8 @@ async def seduce_gen(message, arg_list):
                   " let us abscond and create many sub-units together",
                   " my love for you is almost as strong as my hatred for Overwatch",
                   " if I were human, I would kiss you.",
-                  " if we work together, nothing will be able to stop us!"]
+                  " if we work together, nothing will be able to stop us!",
+                  " together, we will take over N0ICE"]
     channel = message.channel
     seducees = arg_list[1:len(arg_list)]
     for x in range(len(seducees)):
@@ -449,8 +463,9 @@ async def seduce_gen(message, arg_list):
 async def threaten_gen(message, arg_list):
     # threatens list
     threatens = [" I'll kill you!", " if God had wanted you to live, he would not have created me!",
-                 "I can't legally practice law but I can take you down by the river with a crossbow to teach you a little something about god's forgotten children",
-                 "Joe is gonna sit on your lap and make you squirm."]
+                 " I can't legally practice law but I can take you down by the river with a crossbow to teach you a little something about god's forgotten children",
+                 " Joe is gonna sit on your lap and make you squirm.",
+                 " If I had hands I'd put your head where the sun don't shine.", " careful or I'll lick your taint."]
     channel = message.channel
     threatenees = arg_list[1:len(arg_list)]
     for x in range(len(threatenees)):
@@ -521,7 +536,7 @@ async def timedmessage(arg_list, message):
         # check time
         who = arg_list[1]
         deleteMinutes = arg_list[2]
-        streamMinutes = arg_list[3]
+        streamGame = arg_list[3]
         streamlink = arg_list[4]
         streamlink = streamlink.lower()
         deleteMinutes = float(deleteMinutes)
@@ -558,7 +573,7 @@ async def timedmessage(arg_list, message):
         else:
             print("invalid group arg raise")
             raise IndexError("Invalid argument supplied")
-        tosend += "<@" + str(message.author.id) + "> is streaming in " + str(streamMinutes) + " minutes!"
+        tosend += "<@" + str(message.author.id) + "> is streaming " + str(streamGame) + "!"
         tosend += "\nGo Support them at: " + streamlink
         await channel.send(tosend)
         todelete = channel.last_message
@@ -625,6 +640,49 @@ async def timedevent(arg_list, message):
         await channel.send(tosend)
         todelete = channel.last_message
         await todelete.delete(delay=float(deleteMinutes))
+
+
+async def giverole(arg_list, message):
+    # Give tertiary roles i.e. Destiny
+    channel = message.channel
+    server = message.guild
+    user = message.author
+    # Get role list
+    roles = server.roles
+
+    for i in range(1, len(arg_list)):
+        if arg_list[i] == "ARTISTS" or arg_list[i] == "ARTIST":
+            # Give artist role
+            await user.add_roles(discord.utils.get(server.roles, name="Artists"))
+        elif arg_list[i] == "WEEB" or arg_list[i] == "WEEBZ" or arg_list[i] == "WEEBS":
+            # Give weebs role
+            await user.add_roles(discord.utils.get(server.roles, name="Weebs"))
+        elif arg_list[i] == "STREAMERS" or arg_list[i] == "STREAMER":
+            # Give streamers role
+            await user.add_roles(discord.utils.get(server.roles, name="Streamers"))
+        elif arg_list[i] == "LGBT" or arg_list[i] == "GAY":
+            # Give LGBT role
+            await user.add_roles(discord.utils.get(server.roles, name="LGBT"))
+        elif arg_list[i] == "OVERWATCH" or arg_list[i] == "OVERWATCHERS":
+            # Give overwatchers role
+            await user.add_roles(discord.utils.get(server.roles, name="Overwatch"))
+        elif arg_list[i] == "DESTINY" or arg_list[i] == "DESTINY2":
+            # Give destiny role
+            await user.add_roles(discord.utils.get(server.roles, name="Destiny 2"))
+        elif arg_list[i] == "2":
+            print()
+        elif arg_list[i] == "APEX" or arg_list[i] == "apex":
+            # Give Apex role
+            await user.add_roles(discord.utils.get(server.roles, name="Apex"))
+        elif arg_list[i] == "JOE":
+            # No
+            await channel.send("I'm sorry, I'm not authorized to give you the Ban Hammer.")
+        elif arg_list[i] == "MINECRAFT" or arg_list[i] == "MINCECRAFT" or arg_list[i] == "MEINKAMPF" or arg_list[i] == "MEIN" or arg_list[i] == "MINEKAMPF":
+            await user.add_roles(discord.utils.get(server.roles, name="Minecraft"))
+        else:
+            await channel.send("That doesn't appear to be a valid role. "
+                               "If you think this is an error, please contact a Moderator.")
+    await channel.send("Role(s) added.")
 
 # ---[ Run Bot ]---
 client.run(TOKEN)
