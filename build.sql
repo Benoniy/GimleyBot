@@ -1,7 +1,3 @@
-CREATE DATABASE IF NOT EXISTS bot2;
-
-USE bot2;
-
 CREATE TABLE IF NOT EXISTS servers (
 	guildID INTEGER NOT NULL,
 	guildName TEXT,
@@ -11,6 +7,7 @@ CREATE TABLE IF NOT EXISTS servers (
 CREATE TABLE NOT EXISTS roles (
 	roleID INTEGER NOT NULL,
 	guildID INTEGER NOT NULL,
+	roleType INTEGER,
 	roleType INTEGER,
 	roleRegex TEXT,
 	PRIMARY KEY (roleID, guildID),
