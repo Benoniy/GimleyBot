@@ -65,26 +65,33 @@ def error_message(message):
 
 # ---[ DB Access Methods ]---
 def dbSet(script):
+    try:
     # TODO add sanitization
-    # To be used with 'INSERT' and 'UPDATE' style commands
-    connection = db.connect('bot2.db')
-    cursor = connection.cursor()
-    cursor.execute(script)
-    connection.commit()
-    connection.close()
+        # To be used with 'INSERT' and 'UPDATE' style commands
+        connection = db.connect('bot2.db')
+        cursor = connection.cursor()
+        cursor.execute(script)
+        connection.commit()
+        connection.close()
+    except db.OperationalError as e:
+        error_message("Sqlite3 Operational Error!")
+        print(e)
 
 
 def dbGet(script):
-    # TODO add sanitization
-    # To be used with 'SELECT' style commands
-    connection = db.connect('bot2.db')
-    cursor = connection.cursor()
-    cursor.execute(script)
-    # fetchall() returns a tuple of tuples
-    get = cursor.fetchall()
-    connection.close()
-    return get
-
+    try:
+        # TODO add sanitization
+        # To be used with 'SELECT' style commands
+        connection = db.connect('bot2.db')
+        cursor = connection.cursor()
+        cursor.execute(script)
+        # fetchall() returns a tuple of tuples
+        get = cursor.fetchall()
+        connection.close()
+        return get
+    except db.OperationalError as e:
+        error_message("Sqlite3 Operational Error!")
+        print(e)
 
 def xpUser(xp, user):
     author_score = dbGet(
@@ -139,7 +146,7 @@ def dbUpdate():
                 warning_message("Database missing role: {0} from guild: {1}".format(role.name, current_guild.name))
                 role_regex = ("{0}|{1}|{2}".format(role.name, role.name.lower(), role.name.upper()))
                 dbSet("INSERT INTO roles (roleID, guildID, roleType, roleName, roleRegex) VALUES "
-                      "({0}, {1}, {2}, '{3}', '{4}');".format(role.id, current_guild.id, 0, role_regex, role.name))
+                      "({0}, {1}, {2}, '{3}', '{4}');".format(role.id, current_guild.id, 0, role.name, role_regex))
 
         # Check users in server
         db_users = dbGet("SELECT * FROM users WHERE guildID={0};".format(current_guild.id))
@@ -170,7 +177,7 @@ async def on_ready():
     dbUpdate()
 
     # Set Discord Status
-    activity = discord.Game(" deporting Akif.")
+    activity = discord.Game(" with Ben's Nipples.")
     await client.change_presence(status=discord.Status.online, activity=activity, afk=False)
     info_message("Dominatrix Bot now online.")
 
@@ -317,17 +324,30 @@ async def on_message(message):
         # Role-Type command
         elif re.search("^[" + BOT_PREFIX + "]\s?(ROLE|Role|role)(\s|-|_)?(TYPE|Type|type)", message.content) is not None:
             info_message("'role-type' command received.")
-            await roleType(message, args)
+            await roleType(message)
 
     # Todd-bot case
-    elif re.search("(TODD|Todd|todd)(_|-|\s)?(BOT|Bot|bot)", message.content) is not None:
-        warning_message("'toddbot' phrase detected.")
-        await message.channel.send("**Fuck Toddbot!**")
+    elif re.search("(TODD|Todd|todd)(_|-|\s)?(BOT|Bot|bot)", message.content) is not None\
+            and not message.author.bot:
+        info_message("'toddbot' phrase detected in Server: " + message.guild.name)
+        await message.channel.send("**Fuck Todd-bot!**")
 
     else:
         # Update user's XP based on message
         xpUser(10, author)
 
+# ---[ Check User Authorization Command ]---
+def is_authorized(message):
+    # i.e. has "moderator" role or something similar
+    authorized = False
+    for member in message.guild.members:
+        if member.id == message.author.id:
+            # Check this ID specifically
+            for r in member.roles:
+                if r.permissions.manage_guild:
+                    authorized = True
+                    break
+    return authorized
 
 # ---[ Bot Commands ]---
 # Bot Help Command
@@ -430,6 +450,7 @@ async def get_modpacks(message):
 
 # Add-Modpack Command
 async def add_modpack(message, args):
+    # TODO update this to act similarly to role-type command
     dbSet("INSERT INTO modpacks (packName, game, guildID, packLink) VALUES {0}, {1}, {2}, {3}".format(args[0], args[1],
                                                                                                       message.guild.id,
                                                                                                       args[2]))
@@ -558,8 +579,10 @@ async def iam(message):
                                                                                                    4))
         tosend = ""
         for r in roles:
-            await message.user.add_roles(message.guild.get_role(r[0]))
+            await message.author.add_roles(message.guild.get_role(r[0]))
             tosend += "Added role: " + r[1] + ".\n"
+
+        await message.channel.send(tosend)
 
     elif re.search("18-|(UNDER|Under|under)(_|-|\s)?18", message.content) is not None:
         # Get roles with ID 6 + 4
@@ -567,8 +590,9 @@ async def iam(message):
             "SELECT roleID, roleName FROM roles WHERE guildID={0} AND roleType={1} OR roleType={2};".format(message.guild.id, 6, 4))
         tosend = ""
         for r in roles:
-            await message.user.add_roles(message.guild.get_role(r[0]))
+            await message.author.add_roles(message.guild.get_role(r[0]))
             tosend += "Added role: " + r[1] + ".\n"
+        await message.channel.send(tosend)
 
     else:
         warning_message("'iam' command called with an argument that could not be parsed.")
@@ -627,13 +651,15 @@ async def gimme(message):
     tosend = ""
     added = False
     for role in roles:
-        if re.search(roles[2], message) is not None:
-            await message.user.add_roles(message.guild.get_role(role[0]))
+        if re.search("("+role[2]+")", message.content) is not None:
             tosend += "Added role: " + role[1] + ".\n"
             added = True
+            await message.author.add_roles(message.guild.get_role(role[0]))
     if not added:
         info_message("'gimme' command called, but no role was found to match.")
         await message.channel.send("Unable to find any roles that match that name.")
+    else:
+        await message.channel.send(tosend)
 
 
 # Return steam-id based on given username
@@ -654,65 +680,55 @@ async def getSteamID(message, args):
 
 # Add alt name to role-name regex
 async def altname(message, args):
-    role = dbGet("SELECT roleRegex FROM roles WHERE guildID={0} AND roleName={1};".format(message.guild.id, args[0]))
-    to_add = role[0][0]
-    if len(args) < 2:
-        to_add += "|(" + args[1].upper() + "|" + args[1].lower() + "|" + args[1] + ")"
+    if is_authorized(message):
+        role = dbGet("SELECT roleRegex FROM roles WHERE guildID={0} AND roleName='{1}';".format(message.guild.id, args[0]))
+        to_add = role[0][0]
+        if len(args) < 2:
+            to_add += "|(" + args[1].upper() + "|" + args[1].lower() + "|" + args[1] + ")"
+        else:
+            to_add += "|"
+            for i in range(1, len(args)):
+                word = args[i]
+                # Word & upper / lower alts.
+                to_add += "(" + word.upper() + "|" + word.lower() + "|" + word + ")"
+                # Space separator
+                to_add += "(_|-|\s)"
+        # Update
+        dbSet("UPDATE users SET roleRegex={0} WHERE guildID={0} AND roleName='{1}';".format(message.guild.id, args[0]))
+        await message.channel.send("Updated role.")
     else:
-        to_add += "|"
-        for i in range(1, len(args)):
-            word = args[i]
-            # Word & upper / lower alts.
-            to_add += "(" + word.upper() + "|" + word.lower() + "|" + word + ")"
-            # Space separator
-            to_add += "(_|-|\s)"
-    # Update
-    dbSet("UPDATE users SET roleRegex={0} WHERE guildID={0} AND roleName={1};".format(message.guild.id, args[0]))
-    await message.channel.send("Updated role.")
+        await message.channel.send("You are not authorized to use this command.")
 
 
 # role-type command
-async def roleType(message, args):
-    # Check permission
-    authorized = False
-    setType = False
-    if 0 < int(args[-1]) < 7:
-        setType = True
-
-    for role in message.author.roles:
-        if role.permissions.manage_guild:
-            authorized = True
-
+async def roleType(message):
     try:
-        # Get role from server
-        for role in message.guild.roles:
-            if role.name == args[0]:
-                dbRole = dbGet("SELECT roleType FROM roles WHERE guildID={0} "
-                               "AND roleID={1};".format(message.guild.id, role.id))
-                dbRole = [0]
-                if authorized and setType:
-                            dbSet("UPDATE roles SET roleType={0} WHERE  guildID={1} "
-                                  "AND roleID={2};".format(args[-1], message.guild.id, role.id))
-                            info_message("'Role-Type' command updated {0} from Type {1} to "
-                                         "Type {2}".format(role.name, dbRole[0], args[-1]))
-                            await message.channel.send("Sucessfully updated {0} from Type {1} to "
-                                                       "Type {2}.".format(role.name, dbRole[0], args[-1]))
-                elif not setType:
-                    await message.channel.send("Role {0} has Type {1}.".format(role.name, dbRole[0]))
+        role = re.search('\s?"([a-zA-Z]*)"\s?', message.content).group(1)
+        if role == "":
+            info_message("role-type command called with no role given between speech-marks.")
+            await message.channel.send("You need to enter a role-name between the speech marks.")
 
-                else:
-                    info_message("User {0} tried to use the 'role-type' command unsucessfully. "
-                                 "(Server: {1})".format(message.author, message.guild.name))
-                    await message.channel.send("'Role-Type' command failed. "
-                                               "Either you do not have permission or you didn't give a valid number.")
-    except TypeError:
-        await message.channel.send("'Role-Type' command failed. Unable to read type-number specified.")
-
+        if re.search("[0-9]", message.content[-1:]) is not None:
+            if is_authorized(message):
+                # Call is to set type
+                dbSet("UPDATE roles SET roleType={0} WHERE guildID={1} AND roleName='{2}';".format(message.content[-1:], message.guild.id, role))
+                await message.channel.send("'" + role + "' type updated to " + message.content[-1:])
+            else:
+                await message.channel.send("You are not authorized to set role-types.")
+        else:
+            # Call is to check type
+            type = dbGet("SELECT roleType FROM roles WHERE guildID={0} AND roleName='{1}';".format(message.guild.id, role))
+            type = type[0]
+            type = type[0]
+            await message.channel.send("The role type for '" + role + "' is {0}".format(type))
+    except AttributeError:
+        warning_message("Attribute Error caught. User forgot to include speech-marks in command call.")
+        await message.channel.send('Remember to include " " around the role name when calling this command.')
 
 # XP Command
 async def getXp(message):
     user = dbGet("SELECT xp, userLevel FROM users WHERE guildID={0} "
-                 "AND userID={1};".format(message.guild.id, message.author.id))
+                 "AND userID='{1}';".format(message.guild.id, message.author.id))
     user = user[0]
     await message.channel.send("Your Level: {0}\nYour current XP: {1}".format(user[1], user[0]))
 
