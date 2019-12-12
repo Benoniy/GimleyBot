@@ -300,7 +300,7 @@ async def on_message(message):
             await getSteamID(message, args)
 
         # Gimme role command
-        elif re.search("^[" + BOT_PREFIX + "]\s?(GIMME|Gimme|gimme)|(Give me|GIVE ME|Give Me|give me)",
+        elif re.search("^[" + BOT_PREFIX + "]\s?(GIMME|Gimme|gimme)|(Give|GIVE|Give|give)(ME|Me|me)?",
                        message.content) is not None:
             info_message("'Gimme' command received.")
             await gimme(message)
@@ -354,20 +354,36 @@ def is_authorized(message):
 async def bot_help(message, args):
     if len(args) > 0:
         # Check which command was entered for help
-        for arg in args:
-            if re.search("THREATEN|Threaten|threaten", arg) is not None:
-                # Help with 'threaten' command
-                await message.channel.send("The **}threaten** command works by @-ing "
+        if re.search("THREATEN|Threaten|threaten", message.content) is not None:
+            # Help with 'threaten' command
+            await message.channel.send("The **}Threaten** command works by @-ing "
                                            "a member to threaten,\ni.e. }threaten @Akif")
-            elif re.search("SEDUCE|Seduce|seduce", arg) is not None:
-                # Help with 'threaten' command
-                await message.channel.send("The **}seduce** command works by @-ing "
+        elif re.search("SEDUCE|Seduce|seduce", message.content) is not None:
+            # Help with 'threaten' command
+            await message.channel.send("The **}Seduce** command works by @-ing "
                                            "a member to threaten,\ni.e. }seduce @Joe")
-            elif re.search("ROLL|Roll|roll", arg) is not None:
-                # Help with 'threaten' command
-                await message.channel.send("The **}roll** command works by saying *how many dice* of "
+        elif re.search("ROLL|Roll|roll", message.content) is not None:
+            # Help with 'threaten' command
+            await message.channel.send("The **}Roll** command works by saying *how many dice* of "
                                            "*how many sides* to roll,\ni.e. }roll 2 6 would roll 2 six-sided dice.")
-            # TODO add help cases for rest of commands
+        elif re.search("STATUS|status|Status|State|state", message.content) is not None:
+            # Help with 'status' command
+            await message.channel.send("The **}Status** command is a simple way to check if the bot is working or not,"
+                                       " it returns a reply if the bot is working.")
+        elif re.search("(XP|Xp|xp)|(LEVEL|Level|level)", message.content) is not None:
+            # Help with 'level' command
+            await message.channel.send("The **}Level** or **}Xp** command returns how many experience points and "
+                                       "what level you are. Currently this has no usage.")
+        elif re.search("(GIMME|Gimme|gimme)|(Give|GIVE|Give|give)(ME|Me|me)?", message.content) is not None:
+            # Help with 'gimme' command
+            await message.channel.send("The **}gimme** command is used to give you roles for certain games or "
+                                       "types of games.\ni.e. }gimme artists would give you the artists role.")
+        elif re.search("(Steam|steam|STEAM)(_|-|\s)?(ID|id|Id)", message.content) is not None:
+            # Help with the 'SteamID' command
+            await message.channel.send("The **}SteamID** command is used to get alternative steam-id's for a given"
+                                       "steam account.\ni.e. }SteamID https://steamcommunity.com/id/Meed223 would"
+                                       "return the ID numbers for Meed223.")
+        # TODO add more cases for command help explanations
 
     else:
         await message.channel.send("}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
