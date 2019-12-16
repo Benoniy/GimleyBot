@@ -381,7 +381,7 @@ async def bot_help(message, args):
         elif re.search("(Steam|steam|STEAM)(_|-|\s)?(ID|id|Id)", message.content) is not None:
             # Help with the 'SteamID' command
             await message.channel.send("The **}SteamID** command is used to get alternative steam-id's for a given"
-                                       "steam account.\ni.e. }SteamID https://steamcommunity.com/id/Meed223 would"
+                                       "steam account.\ni.e. }SteamID Meed223 would"
                                        "return the ID numbers for Meed223.")
         # TODO add more cases for command help explanations
 
@@ -588,27 +588,34 @@ async def convert(message, arg_list):
 # Age-based commands
 async def iam(message):
     # Command should contain 18+ / 18-
+    tosend = ""
     if re.search("18[+]|(OVER|Over|over)(_|-|\s)?18", message.content) is not None:
         # Get roles with ID 5 + 4
         roles = dbGet(
             "SELECT roleID, roleName FROM roles WHERE guildID={0} AND roleType={1} OR roleType={2};".format(message.guild.id, 5,
                                                                                                    4))
-        tosend = ""
         for r in roles:
             await message.author.add_roles(message.guild.get_role(r[0]))
-            tosend += "Added role: " + r[1] + ".\n"
-
-        await message.channel.send(tosend)
+            tosend += "Added role: '" + r[1] + "'\n"
+        if tosend != "":
+            await message.channel.send(tosend)
+        else:
+            warning_message("Warning: no roles added in iam command.")
+            await message.channel.send("Looks like something went wrong adding your roles, please ask a mod to give them to you.")
 
     elif re.search("18-|(UNDER|Under|under)(_|-|\s)?18", message.content) is not None:
         # Get roles with ID 6 + 4
         roles = dbGet(
             "SELECT roleID, roleName FROM roles WHERE guildID={0} AND roleType={1} OR roleType={2};".format(message.guild.id, 6, 4))
-        tosend = ""
+
         for r in roles:
             await message.author.add_roles(message.guild.get_role(r[0]))
-            tosend += "Added role: " + r[1] + ".\n"
-        await message.channel.send(tosend)
+            tosend += "Added role: '" + r[1] + "'\n"
+        if tosend != "":
+            await message.channel.send(tosend)
+        else:
+            warning_message("Warning: no roles added in iam command.")
+            await message.channel.send("Looks like something went wrong adding your roles, please ask a mod to give them to you.")
 
     else:
         warning_message("'iam' command called with an argument that could not be parsed.")
@@ -681,16 +688,19 @@ async def gimme(message):
 # Return steam-id based on given username
 async def getSteamID(message, args):
     tosend = ""
-    for arg in args:
-        # Returns the different steam ID's for a given user
-        id = SteamID.from_url("https://steamcommunity.com/id/" + arg + "/")
-        tosend += "SteamID: " + str(id.as_steam2_zero)
-        tosend += "\nSteamID3: " + str(id.as_32)
-        tosend += "\nSteamID64: " + str(id.as_64)
-        tosend += "\n\n" + id.community_url
+    try:
+        for arg in args:
+            # Returns the different steam ID's for a given user
+            id = SteamID.from_url("https://steamcommunity.com/id/" + arg + "/")
+            tosend += "SteamID: " + str(id.as_steam2_zero)
+            tosend += "\nSteamID3: " + str(id.as_32)
+            tosend += "\nSteamID64: " + str(id.as_64)
+            tosend += "\n\n" + id.community_url
 
-        await message.channel.send(tosend)
-
+            await message.channel.send(tosend)
+        return
+    except AttributeError:
+        await message.channel.send("Something went wrong with this command. Try again later.")
     return
 
 
@@ -719,7 +729,7 @@ async def altname(message, args):
 # role-type command
 async def roleType(message):
     try:
-        role = re.search('\s?"([a-zA-Z]*)"\s?', message.content).group(1)
+        role = re.search('\s?"(([a-zA-Z]|\s|[0-9]|[+])*)"\s?', message.content).group(1)
         if role == "":
             info_message("role-type command called with no role given between speech-marks.")
             await message.channel.send("You need to enter a role-name between the speech marks.")
