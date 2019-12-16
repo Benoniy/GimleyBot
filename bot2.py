@@ -779,4 +779,7 @@ if not warnings:
 if not error:
     print("ERROR calls won't be printed to console")
 
-client.run(TOKEN)
+
+
+if __name__ == "__main__":
+    client.run(TOKEN)

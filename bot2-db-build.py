@@ -51,4 +51,6 @@ def dbBuild():
     connection.close()
     return
 
-dbBuild()
+
+if __name__ == "__main__":
+    dbBuild()
