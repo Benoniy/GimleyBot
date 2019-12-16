@@ -6,6 +6,7 @@ making use of a SQLite databse for managing servers, roles and users
 
 # ---[ Imports ]---
 import math
+import socket
 import discord
 import sqlite3 as db
 import os
@@ -326,6 +327,11 @@ async def on_message(message):
             info_message("'role-type' command received.")
             await roleType(message)
 
+        # IP-Get Command
+        elif re.search("^[" + BOT_PREFIX + "]\s?(IP|Ip|ip)(\s|-|_)?(ADDRESS|Address|address)?", message.content) is not None:
+            info_message("'ip' command recieved.")
+            await getIP(message)
+
     # Todd-bot case
     elif re.search("(TODD|Todd|todd)(_|-|\s)?(BOT|Bot|bot)", message.content) is not None\
             and not message.author.bot:
@@ -402,6 +408,12 @@ async def bot_help(message, args):
                                    "\n}Gimme - gives you roles such as 'artists' (Not Membership roles!)"
                                    "\nUsage example: }Gimme artists")
 
+# IP Address Command
+async def getIP(message):
+    if is_authorized(message):
+        await message.channel.send("**IP:** {0}".format(socket.gethostbyname(socket.gethostname())))
+    else:
+        await message.channel.send("You aren't authorized to use this command.")
 
 # Dice Roll Command
 async def roll_dice(message, args):
