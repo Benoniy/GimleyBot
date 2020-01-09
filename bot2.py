@@ -73,7 +73,6 @@ def error_message(message):
 # ---[ DB Access Methods ]---
 def dbSet(script):
     try:
-    # TODO add sanitization
         # To be used with 'INSERT' and 'UPDATE' style commands
         connection = db.connect('bot2.db')
         cursor = connection.cursor()
@@ -87,7 +86,6 @@ def dbSet(script):
 
 def dbGet(script):
     try:
-        # TODO add sanitization
         # To be used with 'SELECT' style commands
         connection = db.connect('bot2.db')
         cursor = connection.cursor()
@@ -101,16 +99,19 @@ def dbGet(script):
         print(e)
 
 def xpUser(xp, user):
-    author_score = dbGet(
-        "SELECT xp, userLevel FROM users WHERE userID={0} AND guildID={1};".format(user.id, user.guild.id))
-    author_score = author_score[0]
-    author_xp = author_score[0]
-    author_level = author_score[1]
-    author_xp += xp
-    if author_xp >= 1000:
-        author_level += 1
-        author_xp -= 1000
-    dbSet("UPDATE users SET xp={0}, userLevel={1} WHERE userID={2};".format(author_xp, author_level, user.id))
+    try:
+        author_score = dbGet(
+            "SELECT xp, userLevel FROM users WHERE userID={0} AND guildID={1};".format(user.id, user.guild.id))
+        author_score = author_score[0]
+        author_xp = author_score[0]
+        author_level = author_score[1]
+        author_xp += xp
+        if author_xp >= 1000:
+            author_level += 1
+            author_xp -= 1000
+        dbSet("UPDATE users SET xp={0}, userLevel={1} WHERE userID={2};".format(author_xp, author_level, user.id))
+    except IndexError as e:
+        error_message("Index error occured in 'xpUser' - " + e)
 
 
 def dbUpdate():
@@ -185,7 +186,7 @@ async def on_ready():
     dbUpdate()
 
     # Set Discord Status
-    activity = discord.Game(" with Ben's Nipples.")
+    activity = discord.Game(" with Lemon's Nipple.")
     await client.change_presence(status=discord.Status.online, activity=activity, afk=False)
     info_message("Dominatrix Bot now online.")
 
@@ -197,7 +198,7 @@ async def on_member_join(member):
     info_message("A new member has joined a server.")
 
     # Get roles from server for when a new user joins
-    db_roles = dbGet("SELECT ID FROM roles WHERE guildID={0} AND type=4;".format(member.guild.id))
+    db_roles = dbGet("SELECT userID FROM roles WHERE guildID={0} AND type=4;".format(member.guild.id))
     for role in db_roles:
         try:
             await member.add_roles(member.guild.get_role(role[0]), reason="Newly joined", atomic=True)
