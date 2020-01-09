@@ -175,6 +175,7 @@ def dbUpdate():
 # ---[ Bot Start-Up Code ]---
 @client.event
 async def on_ready():
+
     # Check for Database
     if not os.path.isfile('bot2.db'):
         error_message("bot2.db was not found! Alerting Meed223...")
@@ -788,4 +789,5 @@ if not error:
 
 
 if __name__ == "__main__":
+    os.getcwd()
     client.run(TOKEN)
