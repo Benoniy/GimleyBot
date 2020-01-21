@@ -431,8 +431,12 @@ async def bot_help(message, args):
 
 # IP Address Command
 async def getIP(message):
+    # TODO confirm this displays outside IP and not internal
     if is_authorized(message):
-        await message.channel.send("**IP:** {0}".format(socket.gethostbyname(socket.gethostname())))
+        await message.channel.send("**Hostname:** {0}\n**IP:** {1}".format(
+            socket.gethostname(),
+            socket.gethostbyname(socket.gethostname())
+        ))
     else:
         await message.channel.send("You aren't authorized to use this command.")
 
