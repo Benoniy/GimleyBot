@@ -396,24 +396,38 @@ async def bot_help(message, args):
             await message.channel.send("The **}SteamID** command is used to get alternative steam-id's for a given"
                                        "steam account.\ni.e. }SteamID Meed223 would"
                                        "return the ID numbers for Meed223.")
+        elif re.search("(ROLE|Role|role)(_|-|\s)?(TYPE|Type|type)", message.content) is not None:
+            # Help with the 'roletype' command
+            await message.channel.send('The **}roletype** command is for use by Moderators / Admins.\n'
+                                       'It is used to set & check the type of role, i.e. whether a role is used for '
+                                       'moderation or is for organising games.'
+                                       '\n**Usage:**\n'
+                                       '*}roletype "Temp Members"* would return the role-type for Temp Members'
+                                       '*}roletype "Temp Members" 3* would set the role-type for Temp Members to 3'
+                                       '\n\nRole Types are as follows:\n'
+                                       '0 - Unassigned, this is the default for new roles and should be changed.\n'
+                                       '1 - ?\n'
+                                       '2 - ?\n'
+                                       '3 - Game role, or other non-moderation role. Roles like "Artists" should be 3.\n'
+                                       '4 - Moderation roles i.e. "Ze Memberz" should be set to type 4.\n'
+                                       '5 - Age roles. Only "18+" or "Under 18" should be set to this.\n')
         # TODO add more cases for command help explanations
 
     else:
-        await message.channel.send("}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
-                                   "sided dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
-                                   "randomised teams containing any amount of users\n}teams_sharks @user "
-                                   "@user - shark selection for depth\n}insult @user - insults a user"
-                                   "\n}threaten @ user - threatens a user\n}seduce @user - seduces a user"
-                                   "\n}convert USD GBP amount - converts an amount from one currency to another"
-                                   "\n}streamannounce (role) (minutes to delete in) (game you are streaming) "
-                                   "(stream link)"
-                                   "\n}eventannounce (role) (minutes to delete in) (how many minutes till event start) "
-                                   "(game name) (server ip - optional)"
-                                   "\nThe roles for stream & event announce are: **M** - Members, **E** - Members + Temp Members"
-                                   ", **W** - Weebs, **S** - Streamers, **A** - Artists, **N** - Won't mention anyone!"
-                                   "\nNote: You can only mention one of these per announcement - so choose wisely"
-                                   "\n}Gimme - gives you roles such as 'artists' (Not Membership roles!)"
-                                   "\nUsage example: }Gimme artists")
+        await message.channel.send("}iam - used to set your age role & get 'temp-members'\n"
+                                   "Type in either '}iam 18-' or '}iam 18+'\n"
+                                   "}status - Shows the status of the bot\n"
+                                   "}roll x y - Roles *x* amount of *y* sided dice\n"
+                                   "}flip - Flips a coin\n}teams x @user @user... - Creates x "
+                                   "randomised teams containing any amount of users\n"
+                                   "}teams_sharks @user @user - shark selection for depth\n"
+                                   "}insult @user - insults a user\n"
+                                   "}threaten @ user - threatens a user\n"
+                                   "}seduce @user - seduces a user\n"
+                                   "}convert USD GBP amount - converts an amount from one currency to another\n"
+                                   "}Gimme - gives you roles such as 'artists' (Not Membership roles!)\n"
+                                   "**Usage example:** }Gimme artists\n"
+                                   "}roletype 'role' - For Moderator use, controls how bot deals with roles in Server.")
 
 # IP Address Command
 async def getIP(message):
