@@ -21,6 +21,7 @@ from steam import SteamID
 client = discord.Client()
 
 # ---[ Bot Variables ]---
+
 # Actual bot token
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
@@ -744,6 +745,7 @@ async def getSteamID(message, args):
 # Add alt name to role-name regex
 async def altname(message, args):
     if is_authorized(message):
+        # Get existing regex
         role = dbGet("SELECT roleRegex FROM roles WHERE guildID={0} AND roleName='{1}';".format(message.guild.id, args[0]))
         to_add = role[0][0]
         if len(args) < 2:
@@ -756,8 +758,8 @@ async def altname(message, args):
                 to_add += "(" + word.upper() + "|" + word.lower() + "|" + word + ")"
                 # Space separator
                 to_add += "(_|-|\s)"
-        # Update
-        dbSet("UPDATE users SET roleRegex={0} WHERE guildID={0} AND roleName='{1}';".format(message.guild.id, args[0]))
+        # Update regex on db
+        dbSet("UPDATE roles SET roleRegex='{0}' WHERE guildID={1} AND roleName='{2}';".format(to_add, message.guild.id, args[0]))
         await message.channel.send("Updated role.")
     else:
         await message.channel.send("You are not authorized to use this command.")
