@@ -21,7 +21,6 @@ from steam import SteamID
 client = discord.Client()
 
 # ---[ Bot Variables ]---
-
 # Actual bot token
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
@@ -717,8 +716,8 @@ async def gimme(message):
             added = True
             await message.author.add_roles(message.guild.get_role(role[0]))
     if not added:
-        info_message("'gimme' command called, but no role was found to match.")
-        await message.channel.send("Unable to find any roles that match that name.")
+        info_message("'gimme' command called, but no role was found to match or role is not correct type.")
+        await message.channel.send("Unable to find any roles that match that name or I am unable to assign that role.")
     else:
         await message.channel.send(tosend)
 
@@ -757,7 +756,7 @@ async def altname(message, args):
                 # Word & upper / lower alts.
                 to_add += "(" + word.upper() + "|" + word.lower() + "|" + word + ")"
                 # Space separator
-                to_add += "(_|-|\s)"
+                to_add += "(_|-|\s)?"
         # Update regex on db
         dbSet("UPDATE roles SET roleRegex='{0}' WHERE guildID={1} AND roleName='{2}';".format(to_add, message.guild.id, args[0]))
         await message.channel.send("Updated role.")
@@ -789,6 +788,11 @@ async def roleType(message):
     except AttributeError:
         warning_message("Attribute Error caught. User forgot to include speech-marks in command call.")
         await message.channel.send('Remember to include " " around the role name when calling this command.')
+    except IndexError:
+        info_message("User-Input Error. User requested a role using the wrong name, "
+                     "or asked for a role that didn't exist.")
+        await message.channel.send("The roletype command only uses the proper name for roles. Either the name you used"
+                                   "is incorrect or that role does not exist.")
 
 # XP Command
 async def getXp(message):
