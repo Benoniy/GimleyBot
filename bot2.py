@@ -21,6 +21,7 @@ from steam import SteamID
 client = discord.Client()
 
 # ---[ Bot Variables ]---
+'''
 # Actual bot token
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
@@ -29,7 +30,7 @@ BOT_PREFIX = "}"
 # Testing bot token
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
-'''
+
 
 # ---[ Program Logging ]---
 logger = logging.getLogger('StockImageBot.bot2')
@@ -196,21 +197,13 @@ async def on_ready():
 async def on_member_join(member):
     # New member joined server
     info_message("A new member has joined a server.")
+    dbUpdate()
 
-    # Get roles from server for when a new user joins
-    db_roles = dbGet("SELECT userID FROM roles WHERE guildID={0} AND type=4;".format(member.guild.id))
-    for role in db_roles:
-        try:
-            await member.add_roles(member.guild.get_role(role[0]), reason="Newly joined", atomic=True)
-        except discord.Forbidden:
-            warning_message("Don't have permission to give roles to new member.")
-        except discord.HTTPException:
-            warning_message("An HTTP Exception was thrown. Unable to give new member roles.")
-
-    # Add user to the database
-    # VALUES: userID, guildID, xp, userLevel
-    dbSet("INSERT INTO users (userID, guildID, xp, userLevel) VALUES "
-          "({0}, {1}, 0, 0);".format(member.id, member.guild.id))
+@client.event
+async def on_guild_join(guild):
+    # Joined a new server
+    info_message("Bot has joined a new server.")
+    dbUpdate()
 
 
 @client.event
@@ -563,7 +556,6 @@ async def threaten(message, args):
                  " I can't legally practice law but I can take you down by the river with a crossbow "
                  "to teach you a little something about god's forgotten children", " flesh is weak. You shall perish.",
                  " Joe is gonna sit on your lap and make you squirm.",
-                 " I'll turn you as Dark as Akif if you're not careful.",
                  " If I had hands I'd put your head where the sun don't shine.", " careful or I'll lick your taint."]
 
     for arg in args:
@@ -744,25 +736,73 @@ async def getSteamID(message, args):
 
 # Add alt name to role-name regex
 async def altname(message, args):
-    if is_authorized(message):
-        # Get existing regex
-        role = dbGet("SELECT roleRegex FROM roles WHERE guildID={0} AND roleName='{1}';".format(message.guild.id, args[0]))
-        to_add = role[0][0]
-        if len(args) < 2:
-            to_add += "|(" + args[1].upper() + "|" + args[1].lower() + "|" + args[1] + ")"
+    try:
+        if is_authorized(message):
+            # get the full role name from between " " in message
+            if not args[0][0] == '"':
+                # Missing '"' at start
+                await message.channel.send('You are missing " " around the role name you wish to '
+                                           'update with an alt-name')
+                return
+
+            # loop through all args to find one that ends with a '"'
+            found_end = False
+            for i in range(0, len(args)):
+                if args[i][-1:] == '"':
+                    marker = i
+                    found_end = True
+                    # mark element that ends with '"'
+
+            if not found_end:
+                # no end '"' was found
+                await message.channel.send('You are missing " " around the role name you wish to '
+                                           'update with an alt-name')
+                return
+
+            # build role-name
+            role_name = ""
+            print("marker: {0}".format(marker))
+            if marker != 0:
+                for i in range(0, marker+1):
+                    role_name += args[i] + " "
+                role_name = role_name[:-1:] # Strip off whitespace at end of concatenated string
+            else:
+                role_name = args[marker]
+            # remove '"' from start and end of string
+            role_name = role_name[1::]
+            role_name = role_name[:-1:]
+            print(role_name)
+
+            # Get existing regex
+            role = dbGet("SELECT roleRegex FROM roles WHERE guildID={0} AND roleName='{1}';".format(
+                message.guild.id, role_name))
+            to_add = role[0][0]
+
+            # check if more args than marker
+            if len(args) > (marker + 1):
+                # set new alt-name for role
+                to_add += "|"
+                for i in range(marker + 1, len(args)):
+                    word = args[i]
+                    # Word & upper / lower alts.
+                    to_add += "(" + word.upper() + "|" + word.lower() + "|" + word + ")"
+                    # Space separator
+                    to_add += "(_|-|\s)?"
+                # Update regex on db
+                dbSet("UPDATE roles SET roleRegex='{0}' WHERE guildID={1} AND roleName='{2}';".format(
+                    to_add, message.guild.id, role_name))
+                await message.channel.send("Updated role.")
+
+            else:
+                # return alt-names for this role
+                await message.channel.send("Here are current alt-names for the role you specified:\n{0}".format(to_add))
+
         else:
-            to_add += "|"
-            for i in range(1, len(args)):
-                word = args[i]
-                # Word & upper / lower alts.
-                to_add += "(" + word.upper() + "|" + word.lower() + "|" + word + ")"
-                # Space separator
-                to_add += "(_|-|\s)?"
-        # Update regex on db
-        dbSet("UPDATE roles SET roleRegex='{0}' WHERE guildID={1} AND roleName='{2}';".format(to_add, message.guild.id, args[0]))
-        await message.channel.send("Updated role.")
-    else:
-        await message.channel.send("You are not authorized to use this command.")
+            await message.channel.send("You are not authorized to use this command.")
+
+    except IndexError:
+        warning_message("Index-Error in 'altname' command.")
+        await message.channel.send("Sorry, something went wrong. Try using the command again or try the help command to see if you used it correctly.")
 
 
 # role-type command
