@@ -21,7 +21,6 @@ from steam import SteamID
 client = discord.Client()
 
 # ---[ Bot Variables ]---
-'''
 # Actual bot token
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
@@ -30,6 +29,7 @@ BOT_PREFIX = "}"
 # Testing bot token
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
+'''
 
 
 # ---[ Program Logging ]---
@@ -179,14 +179,14 @@ def dbUpdate():
 async def on_ready():
     # Check for Database
     if not os.path.isfile('bot2.db'):
-        error_message("bot2.db was not found! Alerting Meed223...")
+        error_message("bot2.db was not found!")
         exit("bot2.db was not found!")
 
     # Update Database
     dbUpdate()
 
     # Set Discord Status
-    activity = discord.Game(" with Lemon's Nipple.")
+    activity = discord.Game(" Wonderwall.")
     await client.change_presence(status=discord.Status.online, activity=activity, afk=False)
     info_message("Dominatrix Bot now online.")
 
@@ -195,13 +195,13 @@ async def on_ready():
 @client.event
 async def on_member_join(member):
     # New member joined server
-    info_message("A new member has joined a server.")
+    info_message("{0} has joined a server.".format(member.display_name))
     dbUpdate()
 
 @client.event
 async def on_guild_join(guild):
     # Joined a new server
-    info_message("Bot has joined a new server.")
+    info_message("Bot has joined new server: {0}".format(guild.name))
     dbUpdate()
 
 
@@ -331,6 +331,11 @@ async def on_message(message):
         elif re.search("^[" + BOT_PREFIX + "]\s?(IP|Ip|ip)(\s|-|_)?(ADDRESS|Address|address)?", message.content) is not None:
             info_message("'ip' command recieved.")
             await getIP(message)
+
+        # General-Announcement Command
+        elif re.search("^[" + BOT_PREFIX + "]\s?(ANNOUNCE|Announce|announce)|(ANNOUNCEMENT|Announcement|announcement)", message.content) is not None:
+            info_message("'Announce' command recieved.")
+            await announce(message, args)
 
     # Todd-bot case
     elif re.search("(TODD|Todd|todd)(_|-|\s)?(BOT|Bot|bot)", message.content) is not None\
@@ -510,10 +515,9 @@ async def insult(message, args):
     insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!",
                " looks like Akif", " needs to construct additional Pylons",
                " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy",
-               " votes for trump", " thinks the Moon is real", " believes the world is ROUND! LOL"
-                                                               " is almost as mediocre at Overwatch as Akif",
-               " lets face it, you're past your best at this point.",
-               " is a troglodyte"]
+               " votes for trump", " thinks the Moon is real", " believes the world is ROUND! LOL",
+               " is a console peasant.", " is almost as mediocre at Overwatch as Akif",
+               " lets face it, you're past your best at this point.", " is a troglodyte"]
 
     for arg in args:
         if "@" not in arg:
@@ -530,7 +534,7 @@ async def insult(message, args):
 async def seduce(message, args):
     # seductions list
     seductions = [" I like your eyebrows.", " you look very HUMAN today",
-                  " let us abscond and create many sub-units together",
+                  " let us abscond and create many sub-units together", " I'd never give you up, never let you down ;)"
                   " my love for you is almost as strong as my hatred for Overwatch",
                   " if I were human, I would kiss you.",
                   " if we work together, nothing will be able to stop us!",
@@ -554,7 +558,7 @@ async def threaten(message, args):
     threatens = [" I'll kill you!", " if God had wanted you to live, he would not have created me!",
                  " I can't legally practice law but I can take you down by the river with a crossbow "
                  "to teach you a little something about god's forgotten children", " flesh is weak. You shall perish.",
-                 " Joe is gonna sit on your lap and make you squirm.",
+                 " Joe is gonna sit on your lap and make you squirm.", " have you ever heard of drip-torture?",
                  " If I had hands I'd put your head where the sun don't shine.", " careful or I'll lick your taint."]
 
     for arg in args:
@@ -833,6 +837,23 @@ async def roleType(message):
                      "or asked for a role that didn't exist.")
         await message.channel.send("The roletype command only uses the proper name for roles. Either the name you used"
                                    "is incorrect or that role does not exist.")
+
+
+# announcement command
+async def announce(message, args):
+    announce_channel = discord.utils.get(message.guild.text_channels, name="general-tomfoolery")
+    tosend = "**<@" + str(message.author.id) + "> would like to announce:**\n"
+    try:
+        for i in range(0, len(args)):
+            tosend += args[i] + " "
+        tosend += "\n*this message will automatically deleted in 30 minutes*"
+        await message.channel.send("Message will be announced in #General-Tomfoolery and deleted 30 minutes from now.")
+        to_delete = await announce_channel.fetch_message(announce_channel.last_message_id)
+        await to_delete.delete(delay=1800)
+    except IndexError:
+        await message.channel.send("Please write a message. If you think you used this command correctly, "
+                                   "consult the help command or ask Henry for help.")
+
 
 # XP Command
 async def getXp(message):
