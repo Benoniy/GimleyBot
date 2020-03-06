@@ -21,6 +21,7 @@ from steam import SteamID
 client = discord.Client()
 
 # ---[ Bot Variables ]---
+
 # Actual bot token
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
@@ -368,41 +369,42 @@ async def bot_help(message, args):
         # Check which command was entered for help
         if re.search("THREATEN|Threaten|threaten", message.content) is not None:
             # Help with 'threaten' command
-            await message.channel.send("The **}Threaten** command works by @-ing "
-                                           "a member to threaten,\ni.e. }threaten @Akif")
+            await message.channel.send("The `}Threaten` command works by @-ing "
+                                           "a member to threaten,\ni.e. `}threaten @Akif`")
         elif re.search("SEDUCE|Seduce|seduce", message.content) is not None:
             # Help with 'threaten' command
-            await message.channel.send("The **}Seduce** command works by @-ing "
-                                           "a member to threaten,\ni.e. }seduce @Joe")
+            await message.channel.send("The `}Seduce` command works by @-ing "
+                                           "a member to threaten,\ni.e. `}seduce @Joe`")
         elif re.search("ROLL|Roll|roll", message.content) is not None:
             # Help with 'threaten' command
-            await message.channel.send("The **}Roll** command works by saying *how many dice* of "
-                                           "*how many sides* to roll,\ni.e. }roll 2 6 would roll 2 six-sided dice.")
+            await message.channel.send("The `}Roll` command works by saying *how many dice* of "
+                                           "*how many sides* to roll,\ni.e. `}roll 2 6` would roll 2 six-sided dice.")
         elif re.search("STATUS|status|Status|State|state", message.content) is not None:
             # Help with 'status' command
-            await message.channel.send("The **}Status** command is a simple way to check if the bot is working or not,"
+            await message.channel.send("The `}Status` command is a simple way to check if the bot is working or not,"
                                        " it returns a reply if the bot is working.")
         elif re.search("(XP|Xp|xp)|(LEVEL|Level|level)", message.content) is not None:
             # Help with 'level' command
-            await message.channel.send("The **}Level** or **}Xp** command returns how many experience points and "
-                                       "what level you are. Currently this has no usage.")
-        elif re.search("(GIMME|Gimme|gimme)|(Give|GIVE|Give|give)(ME|Me|me)?", message.content) is not None:
+            await message.channel.send("The `}Level` or `}Xp` command returns how many experience points you have and "
+                                       "your level. Currently these have no use, other than to consider "
+                                       "promoting people from temp-members based on text-channel activity.")
+        elif re.search("(GIMME|Gimme|gimme)|(Give|GIVE|give)(ME|Me|me)?", message.content) is not None:
             # Help with 'gimme' command
-            await message.channel.send("The **}gimme** command is used to give you roles for certain games or "
+            await message.channel.send("The `}gimme` command is used to give you roles for certain games or "
                                        "types of games.\ni.e. }gimme artists would give you the artists role.")
         elif re.search("(Steam|steam|STEAM)(_|-|\s)?(ID|id|Id)", message.content) is not None:
             # Help with the 'SteamID' command
-            await message.channel.send("The **}SteamID** command is used to get alternative steam-id's for a given"
+            await message.channel.send("The `}SteamID` command is used to get alternative steam-id's for a given"
                                        "steam account.\ni.e. }SteamID Meed223 would"
                                        "return the ID numbers for Meed223.")
         elif re.search("(ROLE|Role|role)(_|-|\s)?(TYPE|Type|type)", message.content) is not None:
             # Help with the 'roletype' command
-            await message.channel.send('The **}roletype** command is for use by Moderators / Admins.\n'
+            await message.channel.send('The `}roletype` command is for use by Moderators / Admins.\n'
                                        'It is used to set & check the type of role, i.e. whether a role is used for '
                                        'moderation or is for organising games.'
                                        '\n**Usage:**\n'
-                                       '*}roletype "Temp Members"* would return the role-type for Temp Members'
-                                       '*}roletype "Temp Members" 3* would set the role-type for Temp Members to 3'
+                                       '`}roletype "Temp Members"` would return the role-type for Temp Members'
+                                       '`}roletype "Temp Members" 3` would set the role-type for Temp Members to 3'
                                        '\n\nRole Types are as follows:\n'
                                        '0 - Unassigned, this is the default for new roles and should be changed.\n'
                                        '1 - ?\n'
@@ -413,20 +415,21 @@ async def bot_help(message, args):
         # TODO add more cases for command help explanations
 
     else:
-        await message.channel.send("}iam - used to set your age role & get 'temp-members'\n"
-                                   "Type in either '}iam 18-' or '}iam 18+'\n"
-                                   "}status - Shows the status of the bot\n"
-                                   "}roll x y - Roles *x* amount of *y* sided dice\n"
-                                   "}flip - Flips a coin\n}teams x @user @user... - Creates x "
+        await message.channel.send("`}iam` - used to set your age role & get 'temp-members'\n"
+                                   "Type in either `}iam 18-` or `}iam 18+`\n"
+                                   "`}status` - Shows the status of the bot\n"
+                                   "`}roll x y` - Roles *x* amount of *y* sided dice\n"
+                                   "`}flip` - Flips a coin\n}teams x @user @user... - Creates x "
                                    "randomised teams containing any amount of users\n"
-                                   "}teams_sharks @user @user - shark selection for depth\n"
-                                   "}insult @user - insults a user\n"
-                                   "}threaten @ user - threatens a user\n"
-                                   "}seduce @user - seduces a user\n"
-                                   "}convert USD GBP amount - converts an amount from one currency to another\n"
-                                   "}Gimme - gives you roles such as 'artists' (Not Membership roles!)\n"
-                                   "**Usage example:** }Gimme artists\n"
-                                   "}roletype 'role' - For Moderator use, controls how bot deals with roles in Server.")
+                                   "`}teams_sharks @user @user...` - shark selection for depth\n"
+                                   "`}insult @user` - insults a user\n"
+                                   "`}threaten @ user` - threatens a user\n"
+                                   "`}seduce @user` - seduces a user\n"
+                                   "`}convert USD GBP amount` - converts an amount from one currency to another. **Note:**"
+                                   "this command does not work currently.\n"
+                                   "`}Gimme` - gives you roles such as 'artists' (Not Membership roles!)\n"
+                                   "**Usage example:** `}Gimme artists`\n"
+                                   "`}roletype 'role'` - For Moderator use, controls how bot deals with roles in Server.")
 
 # IP Address Command
 async def getIP(message):
