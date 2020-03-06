@@ -187,7 +187,7 @@ async def on_ready():
     dbUpdate()
 
     # Set Discord Status
-    activity = discord.Game(" Wonderwall.")
+    activity = discord.Game("The Long Con.")
     await client.change_presence(status=discord.Status.online, activity=activity, afk=False)
     info_message("Dominatrix Bot now online.")
 
