@@ -517,6 +517,7 @@ async def insult(message, args):
     # insults list
     insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!",
                " looks like Akif", " needs to construct additional Pylons",
+               "'s hairline is receding at an alarming rate", " thinks League of Legends is cool."
                " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy",
                " votes for trump", " thinks the Moon is real", " believes the world is ROUND! LOL",
                " is a console peasant.", " is almost as mediocre at Overwatch as Akif",
