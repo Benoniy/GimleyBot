@@ -21,16 +21,23 @@ from steam import SteamID
 client = discord.Client()
 
 # ---[ Bot Variables ]---
+# Globals
+TOKEN = ""
+BOT_PREFIX = ""
 
-# Actual bot token
-TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
-BOT_PREFIX = "}"
 
-'''
-# Testing bot token
-TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
-BOT_PREFIX = "{"
-'''
+def read_token():
+    # Get token & prefix from file
+    file = open("token.txt", "r")
+    global TOKEN
+    TOKEN = file.readline()
+    TOKEN = TOKEN.replace("\n", "")
+    print(TOKEN)
+    global BOT_PREFIX
+    BOT_PREFIX = file.readline()
+    BOT_PREFIX = BOT_PREFIX.replace("\n", "")
+    print(BOT_PREFIX)
+    return [TOKEN, BOT_PREFIX]
 
 
 # ---[ Program Logging ]---
@@ -879,5 +886,9 @@ if not error:
 
 
 if __name__ == "__main__":
-    os.getcwd()
+    # Assign values to globals
+    print("a")
+    read_token()
+
+    # Run
     client.run(TOKEN)
