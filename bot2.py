@@ -21,15 +21,23 @@ from steam import SteamID
 client = discord.Client()
 
 # ---[ Bot Variables ]---
-'''
-# Actual bot token
-TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
-BOT_PREFIX = "}"
-'''
+# Globals
+TOKEN = ""
+BOT_PREFIX = ""
 
-# Testing bot token
-TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
-BOT_PREFIX = "{"
+
+def read_token():
+    # Get token & prefix from file
+    file = open("token.txt", "r")
+    global TOKEN
+    TOKEN = file.readline()
+    TOKEN = TOKEN.replace("\n", "")
+    print(TOKEN)
+    global BOT_PREFIX
+    BOT_PREFIX = file.readline()
+    BOT_PREFIX = BOT_PREFIX.replace("\n", "")
+    print(BOT_PREFIX)
+    return [TOKEN, BOT_PREFIX]
 
 
 # ---[ Program Logging ]---
@@ -100,16 +108,19 @@ def dbGet(script):
         print(e)
 
 def xpUser(xp, user):
-    author_score = dbGet(
-        "SELECT xp, userLevel FROM users WHERE userID={0} AND guildID={1};".format(user.id, user.guild.id))
-    author_score = author_score[0]
-    author_xp = author_score[0]
-    author_level = author_score[1]
-    author_xp += xp
-    if author_xp >= 1000:
-        author_level += 1
-        author_xp -= 1000
-    dbSet("UPDATE users SET xp={0}, userLevel={1} WHERE userID={2};".format(author_xp, author_level, user.id))
+    try:
+        author_score = dbGet(
+            "SELECT xp, userLevel FROM users WHERE userID={0} AND guildID={1};".format(user.id, user.guild.id))
+        author_score = author_score[0]
+        author_xp = author_score[0]
+        author_level = author_score[1]
+        author_xp += xp
+        if author_xp >= 1000:
+            author_level += 1
+            author_xp -= 1000
+        dbSet("UPDATE users SET xp={0}, userLevel={1} WHERE userID={2};".format(author_xp, author_level, user.id))
+    except IndexError as e:
+        error_message("Index error occured in 'xpUser' - " + e)
 
 
 def dbUpdate():
@@ -174,16 +185,17 @@ def dbUpdate():
 # ---[ Bot Start-Up Code ]---
 @client.event
 async def on_ready():
+
     # Check for Database
     if not os.path.isfile('bot2.db'):
-        error_message("bot2.db was not found! Alerting Meed223...")
+        error_message("bot2.db was not found!")
         exit("bot2.db was not found!")
 
     # Update Database
     dbUpdate()
 
     # Set Discord Status
-    activity = discord.Game(" with Ben's Nipples.")
+    activity = discord.Game("The Long Con.")
     await client.change_presence(status=discord.Status.online, activity=activity, afk=False)
     info_message("Dominatrix Bot now online.")
 
@@ -192,22 +204,14 @@ async def on_ready():
 @client.event
 async def on_member_join(member):
     # New member joined server
-    info_message("A new member has joined a server.")
+    info_message("{0} has joined a server.".format(member.display_name))
+    dbUpdate()
 
-    # Get roles from server for when a new user joins
-    db_roles = dbGet("SELECT ID FROM roles WHERE guildID={0} AND type=4;".format(member.guild.id))
-    for role in db_roles:
-        try:
-            await member.add_roles(member.guild.get_role(role[0]), reason="Newly joined", atomic=True)
-        except discord.Forbidden:
-            warning_message("Don't have permission to give roles to new member.")
-        except discord.HTTPException:
-            warning_message("An HTTP Exception was thrown. Unable to give new member roles.")
-
-    # Add user to the database
-    # VALUES: userID, guildID, xp, userLevel
-    dbSet("INSERT INTO users (userID, guildID, xp, userLevel) VALUES "
-          "({0}, {1}, 0, 0);".format(member.id, member.guild.id))
+@client.event
+async def on_guild_join(guild):
+    # Joined a new server
+    info_message("Bot has joined new server: {0}".format(guild.name))
+    dbUpdate()
 
 
 @client.event
@@ -337,6 +341,11 @@ async def on_message(message):
             info_message("'ip' command recieved.")
             await getIP(message)
 
+        # General-Announcement Command
+        elif re.search("^[" + BOT_PREFIX + "]\s?(ANNOUNCE|Announce|announce)|(ANNOUNCEMENT|Announcement|announcement)", message.content) is not None:
+            info_message("'Announce' command recieved.")
+            await announce(message, args)
+
     # Todd-bot case
     elif re.search("(TODD|Todd|todd)(_|-|\s)?(BOT|Bot|bot)", message.content) is not None\
             and not message.author.bot:
@@ -367,56 +376,76 @@ async def bot_help(message, args):
         # Check which command was entered for help
         if re.search("THREATEN|Threaten|threaten", message.content) is not None:
             # Help with 'threaten' command
-            await message.channel.send("The **}Threaten** command works by @-ing "
-                                           "a member to threaten,\ni.e. }threaten @Akif")
+            await message.channel.send("The `}Threaten` command works by @-ing "
+                                           "a member to threaten,\ni.e. `}threaten @Akif`")
         elif re.search("SEDUCE|Seduce|seduce", message.content) is not None:
             # Help with 'threaten' command
-            await message.channel.send("The **}Seduce** command works by @-ing "
-                                           "a member to threaten,\ni.e. }seduce @Joe")
+            await message.channel.send("The `}Seduce` command works by @-ing "
+                                           "a member to threaten,\ni.e. `}seduce @Joe`")
         elif re.search("ROLL|Roll|roll", message.content) is not None:
             # Help with 'threaten' command
-            await message.channel.send("The **}Roll** command works by saying *how many dice* of "
-                                           "*how many sides* to roll,\ni.e. }roll 2 6 would roll 2 six-sided dice.")
+            await message.channel.send("The `}Roll` command works by saying *how many dice* of "
+                                           "*how many sides* to roll,\ni.e. `}roll 2 6` would roll 2 six-sided dice.")
         elif re.search("STATUS|status|Status|State|state", message.content) is not None:
             # Help with 'status' command
-            await message.channel.send("The **}Status** command is a simple way to check if the bot is working or not,"
+            await message.channel.send("The `}Status` command is a simple way to check if the bot is working or not,"
                                        " it returns a reply if the bot is working.")
         elif re.search("(XP|Xp|xp)|(LEVEL|Level|level)", message.content) is not None:
             # Help with 'level' command
-            await message.channel.send("The **}Level** or **}Xp** command returns how many experience points and "
-                                       "what level you are. Currently this has no usage.")
-        elif re.search("(GIMME|Gimme|gimme)|(Give|GIVE|Give|give)(ME|Me|me)?", message.content) is not None:
+            await message.channel.send("The `}Level` or `}Xp` command returns how many experience points you have and "
+                                       "your level. Currently these have no use, other than to consider "
+                                       "promoting people from temp-members based on text-channel activity.")
+        elif re.search("(GIMME|Gimme|gimme)|(Give|GIVE|give)(ME|Me|me)?", message.content) is not None:
             # Help with 'gimme' command
-            await message.channel.send("The **}gimme** command is used to give you roles for certain games or "
+            await message.channel.send("The `}gimme` command is used to give you roles for certain games or "
                                        "types of games.\ni.e. }gimme artists would give you the artists role.")
         elif re.search("(Steam|steam|STEAM)(_|-|\s)?(ID|id|Id)", message.content) is not None:
             # Help with the 'SteamID' command
-            await message.channel.send("The **}SteamID** command is used to get alternative steam-id's for a given"
+            await message.channel.send("The `}SteamID` command is used to get alternative steam-id's for a given"
                                        "steam account.\ni.e. }SteamID Meed223 would"
                                        "return the ID numbers for Meed223.")
+        elif re.search("(ROLE|Role|role)(_|-|\s)?(TYPE|Type|type)", message.content) is not None:
+            # Help with the 'roletype' command
+            await message.channel.send('The `}roletype` command is for use by Moderators / Admins.\n'
+                                       'It is used to set & check the type of role, i.e. whether a role is used for '
+                                       'moderation or is for organising games.'
+                                       '\n**Usage:**\n'
+                                       '`}roletype "Temp Members"` would return the role-type for Temp Members'
+                                       '`}roletype "Temp Members" 3` would set the role-type for Temp Members to 3'
+                                       '\n\nRole Types are as follows:\n'
+                                       '0 - Unassigned, this is the default for new roles and should be changed.\n'
+                                       '1 - ?\n'
+                                       '2 - ?\n'
+                                       '3 - Game role, or other non-moderation role. Roles like "Artists" should be 3.\n'
+                                       '4 - Moderation roles i.e. "Ze Memberz" should be set to type 4.\n'
+                                       '5 - Age roles. Only "18+" or "Under 18" should be set to this.\n')
         # TODO add more cases for command help explanations
 
     else:
-        await message.channel.send("}status - Shows the status of the bot\n}roll x y - Roles x amount of y "
-                                   "sided dice\n}flip - Flips a coin\n}teams x @user @user... - Creates x "
-                                   "randomised teams containing any amount of users\n}teams_sharks @user "
-                                   "@user - shark selection for depth\n}insult @user - insults a user"
-                                   "\n}threaten @ user - threatens a user\n}seduce @user - seduces a user"
-                                   "\n}convert USD GBP amount - converts an amount from one currency to another"
-                                   "\n}streamannounce (role) (minutes to delete in) (game you are streaming) "
-                                   "(stream link)"
-                                   "\n}eventannounce (role) (minutes to delete in) (how many minutes till event start) "
-                                   "(game name) (server ip - optional)"
-                                   "\nThe roles for stream & event announce are: **M** - Members, **E** - Members + Temp Members"
-                                   ", **W** - Weebs, **S** - Streamers, **A** - Artists, **N** - Won't mention anyone!"
-                                   "\nNote: You can only mention one of these per announcement - so choose wisely"
-                                   "\n}Gimme - gives you roles such as 'artists' (Not Membership roles!)"
-                                   "\nUsage example: }Gimme artists")
+        await message.channel.send("`}iam` - used to set your age role & get 'temp-members'\n"
+                                   "Type in either `}iam 18-` or `}iam 18+`\n"
+                                   "`}status` - Shows the status of the bot\n"
+                                   "`}roll x y` - Roles *x* amount of *y* sided dice\n"
+                                   "`}flip` - Flips a coin\n}teams x @user @user... - Creates x "
+                                   "randomised teams containing any amount of users\n"
+                                   "`}teams_sharks @user @user...` - shark selection for depth\n"
+                                   "`}insult @user` - insults a user\n"
+                                   "`}threaten @ user` - threatens a user\n"
+                                   "`}seduce @user` - seduces a user\n"
+                                   "`}convert USD GBP amount` - converts an amount from one currency to another. **Note:**"
+                                   "this command does not work currently.\n"
+                                   "`}Gimme` - gives you roles such as 'artists' (Not Membership roles!)\n"
+                                   "**Usage example:** `}Gimme artists`\n"
+                                   "`}roletype 'role'` - For Moderator use, controls how bot deals with roles in Server.")
 
 # IP Address Command
 async def getIP(message):
+    # TODO confirm this displays outside IP and not internal
     if is_authorized(message):
-        await message.channel.send("**IP:** {0}".format(socket.gethostbyname(socket.gethostname())))
+        await message.channel.send("**Hostname:** {0}\n**IP:** {1}".format(
+            socket.gethostname(),
+            socket.gethostbyname(socket.gethostname())
+        ))
     else:
         await message.channel.send("You aren't authorized to use this command.")
 
@@ -484,8 +513,9 @@ async def get_modpacks(message):
 # Add-Modpack Command
 async def add_modpack(message, args):
     # TODO update this to act similarly to role-type command
-    dbSet("INSERT INTO modpacks (packName, game, guildID, packLink) VALUES {0}, {1}, {2}, {3}".format(
-        args[0], args[1], message.guild.id, args[2]))
+    dbSet("INSERT INTO modpacks (packName, game, guildID, packLink) VALUES {0}, {1}, {2}, {3}".format(args[0], args[1],
+                                                                                                      message.guild.id,
+                                                                                                      args[2]))
     await message.channel.send("Modpack collection updated with: *{0}*".format(args[0]))
     return
 
@@ -495,11 +525,11 @@ async def insult(message, args):
     # insults list
     insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!",
                " looks like Akif", " needs to construct additional Pylons",
+               "'s hairline is receding at an alarming rate", " thinks League of Legends is cool."
                " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy",
-               " votes for trump", " thinks the Moon is real", " believes the world is ROUND! LOL"
-                                                               " is almost as mediocre at Overwatch as Akif",
-               " lets face it, you're past your best at this point.",
-               " is a troglodyte"]
+               " votes for trump", " thinks the Moon is real", " believes the world is ROUND! LOL",
+               " is a console peasant.", " is almost as mediocre at Overwatch as Akif",
+               " lets face it, you're past your best at this point.", " is a troglodyte"]
 
     for arg in args:
         if "@" not in arg:
@@ -516,7 +546,7 @@ async def insult(message, args):
 async def seduce(message, args):
     # seductions list
     seductions = [" I like your eyebrows.", " you look very HUMAN today",
-                  " let us abscond and create many sub-units together",
+                  " let us abscond and create many sub-units together", " I'd never give you up, never let you down ;)"
                   " my love for you is almost as strong as my hatred for Overwatch",
                   " if I were human, I would kiss you.",
                   " if we work together, nothing will be able to stop us!",
@@ -540,8 +570,7 @@ async def threaten(message, args):
     threatens = [" I'll kill you!", " if God had wanted you to live, he would not have created me!",
                  " I can't legally practice law but I can take you down by the river with a crossbow "
                  "to teach you a little something about god's forgotten children", " flesh is weak. You shall perish.",
-                 " Joe is gonna sit on your lap and make you squirm.",
-                 " I'll turn you as Dark as Akif if you're not careful.",
+                 " Joe is gonna sit on your lap and make you squirm.", " have you ever heard of drip-torture?",
                  " If I had hands I'd put your head where the sun don't shine.", " careful or I'll lick your taint."]
 
     for arg in args:
@@ -695,8 +724,8 @@ async def gimme(message):
             added = True
             await message.author.add_roles(message.guild.get_role(role[0]))
     if not added:
-        info_message("'gimme' command called, but no role was found to match.")
-        await message.channel.send("Unable to find any roles that match that name.")
+        info_message("'gimme' command called, but no role was found to match or role is not correct type.")
+        await message.channel.send("Unable to find any roles that match that name or I am unable to assign that role.")
     else:
         await message.channel.send(tosend)
 
@@ -722,24 +751,73 @@ async def getSteamID(message, args):
 
 # Add alt name to role-name regex
 async def altname(message, args):
-    if is_authorized(message):
-        role = dbGet("SELECT roleRegex FROM roles WHERE guildID={0} AND roleName='{1}';".format(message.guild.id, args[0]))
-        to_add = role[0][0]
-        if len(args) < 2:
-            to_add += "|(" + args[1].upper() + "|" + args[1].lower() + "|" + args[1] + ")"
+    try:
+        if is_authorized(message):
+            # get the full role name from between " " in message
+            if not args[0][0] == '"':
+                # Missing '"' at start
+                await message.channel.send('You are missing " " around the role name you wish to '
+                                           'update with an alt-name')
+                return
+
+            # loop through all args to find one that ends with a '"'
+            found_end = False
+            for i in range(0, len(args)):
+                if args[i][-1:] == '"':
+                    marker = i
+                    found_end = True
+                    # mark element that ends with '"'
+
+            if not found_end:
+                # no end '"' was found
+                await message.channel.send('You are missing " " around the role name you wish to '
+                                           'update with an alt-name')
+                return
+
+            # build role-name
+            role_name = ""
+            print("marker: {0}".format(marker))
+            if marker != 0:
+                for i in range(0, marker+1):
+                    role_name += args[i] + " "
+                role_name = role_name[:-1:] # Strip off whitespace at end of concatenated string
+            else:
+                role_name = args[marker]
+            # remove '"' from start and end of string
+            role_name = role_name[1::]
+            role_name = role_name[:-1:]
+            print(role_name)
+
+            # Get existing regex
+            role = dbGet("SELECT roleRegex FROM roles WHERE guildID={0} AND roleName='{1}';".format(
+                message.guild.id, role_name))
+            to_add = role[0][0]
+
+            # check if more args than marker
+            if len(args) > (marker + 1):
+                # set new alt-name for role
+                to_add += "|"
+                for i in range(marker + 1, len(args)):
+                    word = args[i]
+                    # Word & upper / lower alts.
+                    to_add += "(" + word.upper() + "|" + word.lower() + "|" + word + ")"
+                    # Space separator
+                    to_add += "(_|-|\s)?"
+                # Update regex on db
+                dbSet("UPDATE roles SET roleRegex='{0}' WHERE guildID={1} AND roleName='{2}';".format(
+                    to_add, message.guild.id, role_name))
+                await message.channel.send("Updated role.")
+
+            else:
+                # return alt-names for this role
+                await message.channel.send("Here are current alt-names for the role you specified:\n{0}".format(to_add))
+
         else:
-            to_add += "|"
-            for i in range(1, len(args)):
-                word = args[i]
-                # Word & upper / lower alts.
-                to_add += "(" + word.upper() + "|" + word.lower() + "|" + word + ")"
-                # Space separator
-                to_add += "(_|-|\s)"
-        # Update
-        dbSet("UPDATE users SET roleRegex={0} WHERE guildID={0} AND roleName='{1}';".format(message.guild.id, args[0]))
-        await message.channel.send("Updated role.")
-    else:
-        await message.channel.send("You are not authorized to use this command.")
+            await message.channel.send("You are not authorized to use this command.")
+
+    except IndexError:
+        warning_message("Index-Error in 'altname' command.")
+        await message.channel.send("Sorry, something went wrong. Try using the command again or try the help command to see if you used it correctly.")
 
 
 # role-type command
@@ -766,6 +844,27 @@ async def roleType(message):
     except AttributeError:
         warning_message("Attribute Error caught. User forgot to include speech-marks in command call.")
         await message.channel.send('Remember to include " " around the role name when calling this command.')
+    except IndexError:
+        info_message("User-Input Error. User requested a role using the wrong name, "
+                     "or asked for a role that didn't exist.")
+        await message.channel.send("The roletype command only uses the proper name for roles. Either the name you used"
+                                   "is incorrect or that role does not exist.")
+
+
+# announcement command
+async def announce(message, args):
+    announce_channel = discord.utils.get(message.guild.text_channels, name="general-tomfoolery")
+    tosend = "**<@" + str(message.author.id) + "> would like to announce:**\n"
+    try:
+        for i in range(0, len(args)):
+            tosend += args[i] + " "
+        tosend += "\n*this message will automatically deleted in 30 minutes*"
+        await message.channel.send("Message will be announced in #General-Tomfoolery and deleted 30 minutes from now.")
+        to_delete = await announce_channel.fetch_message(announce_channel.last_message_id)
+        await to_delete.delete(delay=1800)
+    except IndexError:
+        await message.channel.send("Please write a message. If you think you used this command correctly, "
+                                   "consult the help command or ask Henry for help.")
 
 
 # XP Command
@@ -775,8 +874,8 @@ async def getXp(message):
     user = user[0]
     await message.channel.send("Your Level: {0}\nYour current XP: {1}".format(user[1], user[0]))
 
-
 # ---[ Start Bot ]---
+
 if not info:
     print("INFO calls won't be printed to console.")
 if not warnings:
@@ -785,5 +884,11 @@ if not error:
     print("ERROR calls won't be printed to console")
 
 
+
 if __name__ == "__main__":
+    # Assign values to globals
+    print("a")
+    read_token()
+
+    # Run
     client.run(TOKEN)
