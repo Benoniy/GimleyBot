@@ -9,7 +9,7 @@ You will also need to add the command prefix on the second line of the file. Thi
 i.e. `}` is one I use by default, so commands look like this: `}status`
 ## Files:
 ### bot2.py 
-Version 2 of StockImageBot, this currently has most of the same commands as version 1, but links with an SQLite3 database to track user-text-channel activity and assigned roles more easily.
+Version 2 of StockImageBot. Has broadly similar commands and abilities, but now with an SQLite3 back-end and improved functionality for many commands, as well as some new ones.
 ### bot2-db-build.py
 This creates the database that is used by version 2 of the bot. This should be run whenever setting up the bot on a new machine.
 ## Old Code:
