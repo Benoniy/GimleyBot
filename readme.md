@@ -1,7 +1,10 @@
 # Stock Image Bot
 A discord bot written in Python. Mainly for use by N0ice and StockImageSharks servers. The 'Stock Image' part of the name is a nonesense name, the bot has no stock-image related functionality.
 
+## Usage:
+### Setting-up a copy of this bot:
 To setup your own version of this bot, you will need to get a bot-token from Discord, and add it to a text file called 'token.txt'  
+
 You will also need to add the command prefix on the second line of the file. This is used to call bot commands  
 i.e. `}` is one I use by default, so commands look like this: `}status`
 ## Files:
