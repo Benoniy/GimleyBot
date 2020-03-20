@@ -21,15 +21,16 @@ from steam import SteamID
 client = discord.Client()
 
 # ---[ Bot Variables ]---
+'''
 # Actual bot token
 TOKEN = "Mzg5MTMxODA0NjI5NTMyNjcz.D3sVag.ucJKODmE1y8oG5lvhYIhgHIeWOs"
 BOT_PREFIX = "}"
-
 '''
+
 # Testing bot token
 TOKEN = "NTU5ODk4NjI0MDg4MjExNDU2.D3u5fw.gVs5shbmR6_OysVkDnplpM1w3mk"
 BOT_PREFIX = "{"
-'''
+
 
 # ---[ Program Logging ]---
 logger = logging.getLogger('StockImageBot.bot2')
@@ -73,7 +74,6 @@ def error_message(message):
 # ---[ DB Access Methods ]---
 def dbSet(script):
     try:
-    # TODO add sanitization
         # To be used with 'INSERT' and 'UPDATE' style commands
         connection = db.connect('bot2.db')
         cursor = connection.cursor()
@@ -87,7 +87,6 @@ def dbSet(script):
 
 def dbGet(script):
     try:
-        # TODO add sanitization
         # To be used with 'SELECT' style commands
         connection = db.connect('bot2.db')
         cursor = connection.cursor()
@@ -485,9 +484,8 @@ async def get_modpacks(message):
 # Add-Modpack Command
 async def add_modpack(message, args):
     # TODO update this to act similarly to role-type command
-    dbSet("INSERT INTO modpacks (packName, game, guildID, packLink) VALUES {0}, {1}, {2}, {3}".format(args[0], args[1],
-                                                                                                      message.guild.id,
-                                                                                                      args[2]))
+    dbSet("INSERT INTO modpacks (packName, game, guildID, packLink) VALUES {0}, {1}, {2}, {3}".format(
+        args[0], args[1], message.guild.id, args[2]))
     await message.channel.send("Modpack collection updated with: *{0}*".format(args[0]))
     return
 
@@ -769,6 +767,7 @@ async def roleType(message):
         warning_message("Attribute Error caught. User forgot to include speech-marks in command call.")
         await message.channel.send('Remember to include " " around the role name when calling this command.')
 
+
 # XP Command
 async def getXp(message):
     user = dbGet("SELECT xp, userLevel FROM users WHERE guildID={0} "
@@ -776,15 +775,14 @@ async def getXp(message):
     user = user[0]
     await message.channel.send("Your Level: {0}\nYour current XP: {1}".format(user[1], user[0]))
 
-# ---[ Start Bot ]---
 
+# ---[ Start Bot ]---
 if not info:
     print("INFO calls won't be printed to console.")
 if not warnings:
     print("WARNINGS calls won't be printed to console")
 if not error:
     print("ERROR calls won't be printed to console")
-
 
 
 if __name__ == "__main__":
