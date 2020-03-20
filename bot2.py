@@ -17,6 +17,9 @@ import requests
 from requests.exceptions import HTTPError
 import json
 from steam import SteamID
+import forex_python as forex
+from forex_python.converter import CurrencyRates
+from forex_python.converter import CurrencyCodes
 
 client = discord.Client()
 
@@ -275,9 +278,9 @@ async def on_message(message):
             await threaten(message, args)
 
         # Convert one currency to another
-        elif re.search("^[" + BOT_PREFIX + "]\s?(CONVERT|Convert|convert)", message.content) is not None:
-            info_message("'convert' command received.")
-            await convert(message, args)
+        elif re.search("^[" + BOT_PREFIX + "]\s?(EXCHANGE|Exchange|exchange)", message.content) is not None:
+            info_message("'Exchange' command received.")
+            await exchange(message, args)
 
         # Command for setting age-related roles
         elif re.search("^[" + BOT_PREFIX + "]\s?(IAM|I'm|iam|Iam|im|Im|i'm)", message.content) is not None:
@@ -545,11 +548,11 @@ async def insult(message, args):
 # Seduce Command
 async def seduce(message, args):
     # seductions list
-    seductions = [" I like your eyebrows.", " you look very HUMAN today",
-                  " let us abscond and create many sub-units together", " I'd never give you up, never let you down ;)"
+    seductions = [" I like your eyebrows.", " you look very < **HUMAN** > today",
+                  " let us abscond and create many sub-units together", " I'd never give you up, never let you down ;)",
                   " my love for you is almost as strong as my hatred for Overwatch",
-                  " if I were human, I would kiss you.",
-                  " if we work together, nothing will be able to stop us!",
+                  " if I were human, I would kiss you.", " construct additional pylons with me?",
+                  " if we work together, nothing will be able to stop us!", " UWU",
                   " together, we will take over N0ICE"]
 
     for arg in args:
@@ -571,7 +574,7 @@ async def threaten(message, args):
                  " I can't legally practice law but I can take you down by the river with a crossbow "
                  "to teach you a little something about god's forgotten children", " flesh is weak. You shall perish.",
                  " Joe is gonna sit on your lap and make you squirm.", " have you ever heard of drip-torture?",
-                 " If I had hands I'd put your head where the sun don't shine.", " careful or I'll lick your taint."]
+                 " If I had hands I'd put your head where the sun don't shine."]
 
     for arg in args:
         if "@" not in arg:
@@ -584,50 +587,58 @@ async def threaten(message, args):
 
     return
 
-
 # Currency Conversion Command
-async def convert(message, arg_list):
-    # Pull currency info
-    # TODO improve the functionality of this command
-    try:
-        response = requests.get("https://api.ratesapi.io/api/latest")
-        rates = json.loads(response.text)
-        rates = rates['rates']
-        rates['EUR'] = 1  # Euro is default
-        response.raise_for_status()  # throws exception if 404
-        to_send = ""
-        if len(arg_list) <= 4:
-            c1 = str(arg_list[1])
-            c2 = str(arg_list[2])
-            val = arg_list[3]
-            # Convert the value given
-            try:
-                val = float(val)
-            except ValueError:
-                print("Failed type conversion")
-                raise ValueError
-            if len(c1) < 3 | len(c2) < 3:
-                print("Currency codes given too small")
-                raise ValueError
-            elif len(c1) > 3 | len(c2) > 3:
-                print("Currency codes given too large")
-                raise ValueError
-            else:
-                to_send += "%.2f" % val + " in " + c1 + " is: "
-                newval = val / float(rates[c1])
-                newval *= float(rates[c2])
-                to_send += "%.2f" % newval + " in " + c2
-                await message.channel.send(to_send)
-        else:
-            warning_message("Incorrect no. args given with 'currency' command.")
-            await message.channel.send("Inappropriate number of arguments given."
-                                       "\nIf you think this wrong, see '*}help convert*' for more info.")
-    except HTTPError:
-        error_message("Unsuccessful GET request for currency rates. (Currency)")
-    except TypeError:
-        error_message("Could not get dictionary from whatever was pulled. (Currency)")
+async def exchange(message):
+    # TODO complete testing
+    # Give exchange rate, or convert currency
+    to_send = ""
+    cr = CurrencyRates()
+    cc = CurrencyCodes()
 
-    return
+    # User has given 2 or more currency-codes to convert between
+    if re.search("\s?[A-Z]{3}(\s?[A-Z]{3})+", message.content) is not None:
+        # Get specified currency codes to convert between
+        codes = re.findall("[A-Z]{3}", message.content)
+        for i in range(1, len(codes)):
+            # Conversion rate between given and specified currency codes
+            to_send += "The **{0}** to **{1}** rate is: {2}".format(codes[0], codes[i],
+                                                                cr.get_rates(codes[0], codes[i]))
+
+    # User has given 2 or more currency-symbols to convert between
+    elif re.search("\s?\p{Sc}(\s?\p{Sc})+", message.content) is not None:
+        # Get specified currency symbols to convert between
+        symbols = re.findall("\p{Sc}", message.content)
+        for s in range(1, len(symbols)):
+            to_send += "The **{0}** to **{1}** rate is: {2}" \
+                       "".format(symbols[0], symbols[s],
+                                 cr.get_rates(cc.get_currency_code_from_symbol(symbols[0]),
+                                              cc.get_currency_code_from_symbol((symbols[s]))))
+
+    # User has given code + amount to convert
+    elif re.search("\s?[A-Z]{3}\s?[0-9]+(\s?[A-Z]{3})+", message.content) is not None:
+        amount = re.findall("[0-9]+", message.content)
+        amount = amount[0]
+
+        codes = re.findall("[A-Z]{3}", message.content)
+        for c in range(1, len(codes)):
+            to_send += "{0} {1} in {2} is: {3}".format(amount, codes[0], codes[c],
+                                                       amount * cr.get_rates(codes[0], codes[c]))
+
+    # User has given symbol + amount to convert
+    elif re.search("\s?\p{Sc}\s?[0-9]+(\s?\p{Sc})+", message.content) is not None:
+        amount = re.findall("[0-9]+", message.content)
+        amount = amount[0]
+
+        symbols = re.findall("\p{Sc}", message.content)
+        for s in range(1, len(symbols)):
+            to_send += "{0}{1} = {2}{3}".format(symbols[0], amount, symbols[s],
+                                                amount * cr.get_rate(cc.get_currency_code_from_symbol(symbols[0]),
+                                                                     cc.get_currency_code_from_symbol(symbols[s])))
+
+    else:
+        to_send = "Unable to understand your request. Please consult `}help` on how to use this command."
+
+    await message.channel.send(to_send)
 
 
 # Age-based commands
