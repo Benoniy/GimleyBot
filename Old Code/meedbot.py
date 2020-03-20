@@ -5,7 +5,7 @@ from discord import Game
 from discord.ext.commands import Bot
 
 BOT_PREFIX = ('>')
-TOKEN = "NDgzOTE1OTc3MjEwMzMxMTM3.DpJZ3A.NxwP4oqL5VGaW1_0l54vOCC2eB8"
+# TOKEN removed as it is flagged up due to public git.
 
 client = Bot(command_prefix=BOT_PREFIX)
 
