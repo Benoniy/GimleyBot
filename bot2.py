@@ -10,16 +10,18 @@ import socket
 import discord
 import sqlite3 as db
 import os
-import re
+import regex
 import random
 import logging
 import requests
 from requests.exceptions import HTTPError
 import json
 from steam import SteamID
-import forex_python as forex
+from datetime import datetime
+from datetime import date
 from forex_python.converter import CurrencyRates
 from forex_python.converter import CurrencyCodes
+from forex_python.converter import RatesNotAvailableError
 
 client = discord.Client()
 
@@ -229,7 +231,7 @@ async def on_message(message):
         # Since bot prefix was used, check if fits any of the commands
         xpUser(20, author)
 
-        if re.search("^[" + BOT_PREFIX + "]\s", message.content) is not None:
+        if regex.search("^[" + BOT_PREFIX + "]\s", message.content) is not None:
             # There is a space between bot-prefix and command
             del args[0]  # Remove }
             del args[1]  # Remove command
@@ -238,119 +240,119 @@ async def on_message(message):
 
         # Now check message against commands
         # A simple status check command
-        if re.search("^[" + BOT_PREFIX + "]\s?(STATUS|status|Status|State|state)", message.content) is not None:
+        if regex.search("^[" + BOT_PREFIX + "]\s?(STATUS|status|Status|State|state)", message.content) is not None:
             info_message("'status' command received.")
             await channel.send("Dominatrix Bot 2.0 is Online.")
 
         # Rolls a dice
-        elif re.search("^[" + BOT_PREFIX + "]\s?(ROLL|roll|Roll|dice)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(ROLL|roll|Roll|dice)", message.content) is not None:
             info_message("'roll' command received.")
             await roll_dice(message.content, args)
 
         # Flips a coin
-        elif re.search("^[" + BOT_PREFIX + "]\s?(FLIP|flip|Flip)(_|\s|-)?(COIN|Coin|coin)?", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(FLIP|flip|Flip)(_|\s|-)?(COIN|Coin|coin)?", message.content) is not None:
             info_message("'flip' command received.")
             await flip_coin(message)
 
         # Returns list of modpacks & links to get them
-        elif re.search("^[" + BOT_PREFIX + "]\s?(MODPACKS?|modpacks?|Modpacks?)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(MODPACKS?|modpacks?|Modpacks?)", message.content) is not None:
             info_message("'modpacks' command received.")
             await get_modpacks(message)
 
         # Add a modpack to list
-        elif re.search("^[" + BOT_PREFIX + "]\s?(ADD|Add|add)(_|\s|-)?(MODPACK|Modpack|modpack)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(ADD|Add|add)(_|\s|-)?(MODPACK|Modpack|modpack)", message.content) is not None:
             info_message("'add modpack' command received")
             await add_modpack(message, args)
 
         # Insults a specified user
-        elif re.search("^[" + BOT_PREFIX + "]\s?(INSULT|insult|Insult)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(INSULT|insult|Insult)", message.content) is not None:
             info_message("'insult' command received.")
             await insult(message, args)
 
         # Seduces a specified user
-        elif re.search("^[" + BOT_PREFIX + "]\s?(SEDUCE|seduce|Seduce)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(SEDUCE|seduce|Seduce)", message.content) is not None:
             info_message("'seduce' command received.")
             await seduce(message, args)
 
         # Threatens a specified user
-        elif re.search("^[" + BOT_PREFIX + "]\s?(THREATEN|Threaten|threaten)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(THREATEN|Threaten|threaten)", message.content) is not None:
             info_message("'threaten' command received.")
             await threaten(message, args)
 
         # Convert one currency to another
-        elif re.search("^[" + BOT_PREFIX + "]\s?(EXCHANGE|Exchange|exchange)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(EXCHANGE|Exchange|exchange)", message.content) is not None:
             info_message("'Exchange' command received.")
-            await exchange(message, args)
+            await exchange(message)
 
         # Command for setting age-related roles
-        elif re.search("^[" + BOT_PREFIX + "]\s?(IAM|I'm|iam|Iam|im|Im|i'm)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(IAM|I'm|iam|Iam|im|Im|i'm)", message.content) is not None:
             info_message("'iam' command received.")
             await iam(message)
 
         # Role for getting Depth shark teams (5 max)
-        elif re.search("^[" + BOT_PREFIX + "]\s?(TEAM|Team|team)(_|\s|-)(SHARKS|Sharks|sharks)", message.content) is not None:
-            if re.search("(M|m)\s(S|s)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(TEAM|Team|team)(_|\s|-)(SHARKS|Sharks|sharks)", message.content) is not None:
+            if regex.search("(M|m)\s(S|s)", message.content) is not None:
                 # Remove 'shark' from args list
                 del(args[0])
             info_message("'team sharks' command received.")
 
         # Role for splitting tagged people into teams
-        elif re.search("^[" + BOT_PREFIX + "]\s?(TEAM|TEAMS|team|teams)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(TEAM|TEAMS|team|teams)", message.content) is not None:
             info_message("'team' command received.")
             await team_gen(message, args)
 
         # Help command
-        elif re.search("^[" + BOT_PREFIX + "]\s?(HELP|help|Help)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(HELP|help|Help)", message.content) is not None:
             info_message("'help' command received.")
             await bot_help(message, args)
 
         # SteamID command - returns steam IDs
-        elif re.search("^[" + BOT_PREFIX + "]\s?(Steam|steam|STEAM)(_|-|\s)?(ID|id|Id)", message.content) is not None:
-            if re.search("(M|m)\s(I|i)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(Steam|steam|STEAM)(_|-|\s)?(ID|id|Id)", message.content) is not None:
+            if regex.search("(M|m)\s(I|i)", message.content) is not None:
                 # Remove 'id' from args list
                 del(args[0])
             info_message("'SteamID' command received.")
             await getSteamID(message, args)
 
         # Gimme role command
-        elif re.search("^[" + BOT_PREFIX + "]\s?(GIMME|Gimme|gimme)|(Give|GIVE|Give|give)(ME|Me|me)?",
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(GIMME|Gimme|gimme)|(Give|GIVE|Give|give)(ME|Me|me)?",
                        message.content) is not None:
             info_message("'Gimme' command received.")
             await gimme(message)
 
         # Alt name command
-        elif re.search("^[" + BOT_PREFIX + "]\s?(ALT|Alt|alt)(_|\s|-)?(NAME|Name|name)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(ALT|Alt|alt)(_|\s|-)?(NAME|Name|name)", message.content) is not None:
             info_message("'Alt Name' command received.")
             await altname(message, args)
 
         # Update command
-        elif re.search("^[" + BOT_PREFIX + "]\s?(UPDATE|Update|update)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(UPDATE|Update|update)", message.content) is not None:
             info_message("'Update' command received.")
             dbUpdate()
             await message.channel.send("Bot database updated.")
 
         # XP command
-        elif re.search("^[" + BOT_PREFIX + "]\s?(XP|Xp|xp)|(LEVEL|Level|level)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(XP|Xp|xp)|(LEVEL|Level|level)", message.content) is not None:
             info_message("'xp' command received.")
             await getXp(message)
 
         # Role-Type command
-        elif re.search("^[" + BOT_PREFIX + "]\s?(ROLE|Role|role)(\s|-|_)?(TYPE|Type|type)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(ROLE|Role|role)(\s|-|_)?(TYPE|Type|type)", message.content) is not None:
             info_message("'role-type' command received.")
             await roleType(message)
 
         # IP-Get Command
-        elif re.search("^[" + BOT_PREFIX + "]\s?(IP|Ip|ip)(\s|-|_)?(ADDRESS|Address|address)?", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(IP|Ip|ip)(\s|-|_)?(ADDRESS|Address|address)?", message.content) is not None:
             info_message("'ip' command recieved.")
             await getIP(message)
 
         # General-Announcement Command
-        elif re.search("^[" + BOT_PREFIX + "]\s?(ANNOUNCE|Announce|announce)|(ANNOUNCEMENT|Announcement|announcement)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(ANNOUNCE|Announce|announce)|(ANNOUNCEMENT|Announcement|announcement)", message.content) is not None:
             info_message("'Announce' command recieved.")
             await announce(message, args)
 
     # Todd-bot case
-    elif re.search("(TODD|Todd|todd)(_|-|\s)?(BOT|Bot|bot)", message.content) is not None\
+    elif regex.search("(TODD|Todd|todd)(_|-|\s)?(BOT|Bot|bot)", message.content) is not None\
             and not message.author.bot:
         info_message("'toddbot' phrase detected in Server: " + message.guild.name)
         await message.channel.send("**Fuck Todd-bot!**")
@@ -377,37 +379,37 @@ def is_authorized(message):
 async def bot_help(message, args):
     if len(args) > 0:
         # Check which command was entered for help
-        if re.search("THREATEN|Threaten|threaten", message.content) is not None:
+        if regex.search("THREATEN|Threaten|threaten", message.content) is not None:
             # Help with 'threaten' command
             await message.channel.send("The `}Threaten` command works by @-ing "
                                            "a member to threaten,\ni.e. `}threaten @Akif`")
-        elif re.search("SEDUCE|Seduce|seduce", message.content) is not None:
+        elif regex.search("SEDUCE|Seduce|seduce", message.content) is not None:
             # Help with 'threaten' command
             await message.channel.send("The `}Seduce` command works by @-ing "
                                            "a member to threaten,\ni.e. `}seduce @Joe`")
-        elif re.search("ROLL|Roll|roll", message.content) is not None:
+        elif regex.search("ROLL|Roll|roll", message.content) is not None:
             # Help with 'threaten' command
             await message.channel.send("The `}Roll` command works by saying *how many dice* of "
                                            "*how many sides* to roll,\ni.e. `}roll 2 6` would roll 2 six-sided dice.")
-        elif re.search("STATUS|status|Status|State|state", message.content) is not None:
+        elif regex.search("STATUS|status|Status|State|state", message.content) is not None:
             # Help with 'status' command
             await message.channel.send("The `}Status` command is a simple way to check if the bot is working or not,"
                                        " it returns a reply if the bot is working.")
-        elif re.search("(XP|Xp|xp)|(LEVEL|Level|level)", message.content) is not None:
+        elif regex.search("(XP|Xp|xp)|(LEVEL|Level|level)", message.content) is not None:
             # Help with 'level' command
             await message.channel.send("The `}Level` or `}Xp` command returns how many experience points you have and "
                                        "your level. Currently these have no use, other than to consider "
                                        "promoting people from temp-members based on text-channel activity.")
-        elif re.search("(GIMME|Gimme|gimme)|(Give|GIVE|give)(ME|Me|me)?", message.content) is not None:
+        elif regex.search("(GIMME|Gimme|gimme)|(Give|GIVE|give)(ME|Me|me)?", message.content) is not None:
             # Help with 'gimme' command
             await message.channel.send("The `}gimme` command is used to give you roles for certain games or "
                                        "types of games.\ni.e. }gimme artists would give you the artists role.")
-        elif re.search("(Steam|steam|STEAM)(_|-|\s)?(ID|id|Id)", message.content) is not None:
+        elif regex.search("(Steam|steam|STEAM)(_|-|\s)?(ID|id|Id)", message.content) is not None:
             # Help with the 'SteamID' command
             await message.channel.send("The `}SteamID` command is used to get alternative steam-id's for a given"
                                        "steam account.\ni.e. }SteamID Meed223 would"
                                        "return the ID numbers for Meed223.")
-        elif re.search("(ROLE|Role|role)(_|-|\s)?(TYPE|Type|type)", message.content) is not None:
+        elif regex.search("(ROLE|Role|role)(_|-|\s)?(TYPE|Type|type)", message.content) is not None:
             # Help with the 'roletype' command
             await message.channel.send('The `}roletype` command is for use by Moderators / Admins.\n'
                                        'It is used to set & check the type of role, i.e. whether a role is used for '
@@ -596,56 +598,69 @@ async def exchange(message):
     cc = CurrencyCodes()
 
     # User has given 2 or more currency-codes to convert between
-    if re.search("\s?[A-Z]{3}(\s?[A-Z]{3})+", message.content) is not None:
-        # Get specified currency codes to convert between
-        codes = re.findall("[A-Z]{3}", message.content)
-        for i in range(1, len(codes)):
-            # Conversion rate between given and specified currency codes
-            to_send += "The **{0}** to **{1}** rate is: {2}".format(codes[0], codes[i],
-                                                                cr.get_rates(codes[0], codes[i]))
+    try:
+        today = date.today()
+        if regex.search("\s?[A-Z]{3}(\s?[A-Z]{3})+", message.content) is not None:
+            # Get specified currency codes to convert between
+            codes = regex.findall("[A-Z]{3}", message.content)
+            for i in range(1, len(codes)):
+                # Conversion rate between given and specified currency codes
+                to_send += "The **{0}** to **{1}** rate is: {2}".format(codes[0], codes[i],
+                                                                    cr.get_rate(codes[0], codes[i]))
 
-    # User has given 2 or more currency-symbols to convert between
-    elif re.search("\s?\p{Sc}(\s?\p{Sc})+", message.content) is not None:
-        # Get specified currency symbols to convert between
-        symbols = re.findall("\p{Sc}", message.content)
-        for s in range(1, len(symbols)):
-            to_send += "The **{0}** to **{1}** rate is: {2}" \
-                       "".format(symbols[0], symbols[s],
-                                 cr.get_rates(cc.get_currency_code_from_symbol(symbols[0]),
-                                              cc.get_currency_code_from_symbol((symbols[s]))))
+        # User has given 2 or more currency-symbols to convert between
+        elif regex.search("\s?\p{Sc}(\s?\p{Sc})+", message.content) is not None:
+            # Get specified currency symbols to convert between
+            symbols = regex.findall("\p{Sc}", message.content)
+            for s in range(1, len(symbols)):
+                to_send += "The **{0}** to **{1}** rate is: {2}" \
+                           "".format(symbols[0], symbols[s],
+                                     cr.get_rate(cc.get_currency_code_from_symbol(symbols[0]),
+                                                  cc.get_currency_code_from_symbol(symbols[s]))
+                                     )
 
-    # User has given code + amount to convert
-    elif re.search("\s?[A-Z]{3}\s?[0-9]+(\s?[A-Z]{3})+", message.content) is not None:
-        amount = re.findall("[0-9]+", message.content)
-        amount = amount[0]
+        # User has given code + amount to convert
+        elif regex.search("\s?[A-Z]{3}\s?[0-9]+(\s?[A-Z]{3})+", message.content) is not None:
+            amount = regex.findall("[0-9]+", message.content)
+            amount = amount[0]
 
-        codes = re.findall("[A-Z]{3}", message.content)
-        for c in range(1, len(codes)):
-            to_send += "{0} {1} in {2} is: {3}".format(amount, codes[0], codes[c],
-                                                       amount * cr.get_rates(codes[0], codes[c]))
+            codes = regex.findall("[A-Z]{3}", message.content)
+            for c in range(1, len(codes)):
+                to_send += "{0} {1} in {2} is: {3}".format(amount, codes[0], codes[c],
+                                                           amount * cr.get_rate(codes[0], codes[c]))
 
-    # User has given symbol + amount to convert
-    elif re.search("\s?\p{Sc}\s?[0-9]+(\s?\p{Sc})+", message.content) is not None:
-        amount = re.findall("[0-9]+", message.content)
-        amount = amount[0]
+        # User has given symbol + amount to convert
+        elif regex.search("\s?\p{Sc}\s?[0-9]+(\s?\p{Sc})+", message.content) is not None:
+            amount = regex.findall("[0-9]+", message.content)
+            amount = amount[0]
 
-        symbols = re.findall("\p{Sc}", message.content)
-        for s in range(1, len(symbols)):
-            to_send += "{0}{1} = {2}{3}".format(symbols[0], amount, symbols[s],
-                                                amount * cr.get_rate(cc.get_currency_code_from_symbol(symbols[0]),
-                                                                     cc.get_currency_code_from_symbol(symbols[s])))
+            symbols = regex.findall("\p{Sc}", message.content)
+            for s in range(1, len(symbols)):
+                to_send += "{0}{1} = {2}{3}".format(symbols[0], amount, symbols[s],
+                                                    amount * cr.get_rate(cc.get_currency_code_from_symbol(symbols[0]),
+                                                                         cc.get_currency_code_from_symbol(symbols[s]), today))
 
-    else:
-        to_send = "Unable to understand your request. Please consult `}help` on how to use this command."
+        else:
+            to_send = "Unable to understand your request. Please consult `}help` on how to use the exchange command."
+            await message.channel.send(to_send)
 
-    await message.channel.send(to_send)
+    except AttributeError as e:
+        # Error in the forex library
+        error_message("Error in the forex-library.")
+        await message.channel.send("Error: Something went wrong. "
+                                   "Try again later or ask a moderator for assistance.")
+
+    except RatesNotAvailableError as e:
+        # Unable to contact currency-exchange
+        error_message("Error in forex-library trying to contact currency exchange.")
+        await message.channel.send("Error: The exchange could not be contacted at this time. Try again later.")
 
 
 # Age-based commands
 async def iam(message):
     # Command should contain 18+ / 18-
     tosend = ""
-    if re.search("18[+]|(OVER|Over|over)(_|-|\s)?18", message.content) is not None:
+    if regex.search("18[+]|(OVER|Over|over)(_|-|\s)?18", message.content) is not None:
         # Get roles with ID 5 + 4
         roles = dbGet(
             "SELECT roleID, roleName FROM roles WHERE guildID={0} AND roleType={1} OR roleType={2};".format(message.guild.id, 5,
@@ -659,7 +674,7 @@ async def iam(message):
             warning_message("Warning: no roles added in iam command.")
             await message.channel.send("Looks like something went wrong adding your roles, please ask a mod to give them to you.")
 
-    elif re.search("18-|(UNDER|Under|under)(_|-|\s)?18", message.content) is not None:
+    elif regex.search("18-|(UNDER|Under|under)(_|-|\s)?18", message.content) is not None:
         # Get roles with ID 6 + 4
         roles = dbGet(
             "SELECT roleID, roleName FROM roles WHERE guildID={0} AND roleType={1} OR roleType={2};".format(message.guild.id, 6, 4))
@@ -730,7 +745,7 @@ async def gimme(message):
     tosend = ""
     added = False
     for role in roles:
-        if re.search("("+role[2]+")", message.content) is not None:
+        if regex.search("("+role[2]+")", message.content) is not None:
             tosend += "Added role: " + role[1] + ".\n"
             added = True
             await message.author.add_roles(message.guild.get_role(role[0]))
@@ -834,12 +849,12 @@ async def altname(message, args):
 # role-type command
 async def roleType(message):
     try:
-        role = re.search('\s?"(([a-zA-Z]|\s|[0-9]|[+])*)"\s?', message.content).group(1)
+        role = regex.search('\s?"(([a-zA-Z]|\s|[0-9]|[+])*)"\s?', message.content).group(1)
         if role == "":
             info_message("role-type command called with no role given between speech-marks.")
             await message.channel.send("You need to enter a role-name between the speech marks.")
 
-        if re.search("[0-9]", message.content[-1:]) is not None:
+        if regex.search("[0-9]", message.content[-1:]) is not None:
             if is_authorized(message):
                 # Call is to set type
                 dbSet("UPDATE roles SET roleType={0} WHERE guildID={1} AND roleName='{2}';".format(message.content[-1:], message.guild.id, role))
@@ -852,9 +867,11 @@ async def roleType(message):
             type = type[0]
             type = type[0]
             await message.channel.send("The role type for '" + role + "' is {0}".format(type))
+
     except AttributeError:
         warning_message("Attribute Error caught. User forgot to include speech-marks in command call.")
         await message.channel.send('Remember to include " " around the role name when calling this command.')
+
     except IndexError:
         info_message("User-Input Error. User requested a role using the wrong name, "
                      "or asked for a role that didn't exist.")
