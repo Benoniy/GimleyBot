@@ -17,6 +17,33 @@ client = discord.Client()
 TOKEN = ""
 BOT_PREFIX = ""
 
+# This switcher is based on the names of commands
+class Switcher(object):
+    def indirect(self, i, message, args):
+        method = getattr(self, i, lambda: "invalid")
+        return method(message, args)
+
+    def help(self, message, args):
+        return bot_help(message)
+
+    def status(self, message, args):
+        return message.channel.send("Dominatrix Bot 2.0 is Online.")
+
+    def roll(self, message, args):
+        return roll_dice(message, args)
+
+    def flip(self, message, args):
+        return flip_coin(message)
+
+    def teams(self, message, args):
+        team_gen(message, args)
+
+    def ip(self, message, args):
+        return getIP(message)
+
+    def announce(self, message, args):
+        announce(message, args)
+
 
 def read_token():
     # Get token & prefix from file
@@ -58,75 +85,34 @@ async def on_guild_join(guild):
 async def on_message(message):
     # Simple setup
     author = message.author
-    channel = message.channel
-    args = message.content.split(' ')
+    o_args = message.content.split(' ')
 
 
     # Message recieved - bot should only reply to users, not other bots
     if author != client.user and BOT_PREFIX in message.content:
-        print(args)
-        # Since bot prefix was used, check if fits any of the commands
-        if regex.search("^[" + BOT_PREFIX + "]\s", message.content) is not None:
-            # There is a space between bot-prefix and command
-            del args[0]  # Remove }
-            del args[1]  # Remove command
-        else:
-            del args[0]  # Remove }command
+        # Remove prefix
+        o_args[0] = o_args[0].replace(BOT_PREFIX, "")
 
-        # Now check message against commands
-        # A simple status check command
+        # Remove blank spaces
+        args = []
+        for arg in o_args:
+            if regex.search("[A-Z]+|[a-z]+|\d+", arg):
+                args.append(arg)
 
-        if regex.search("^[" + BOT_PREFIX + "]\s?(STATUS|status|Status|State|state)", message.content) is not None:
-            await channel.send("Dominatrix Bot 2.0 is Online.")
+        # Extract command from args
+        command = args[0].lower()
+        del args[0]
+        switch = Switcher()
+        await switch.indirect(command, message, args)
 
-        # Rolls a dice
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(ROLL|roll|Roll|dice)", message.content) is not None:
-            await roll_dice(message.content, args)
+        print(command)
 
-        # Flips a coin
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(FLIP|flip|Flip)(_|\s|-)?(COIN|Coin|coin)?",
-                          message.content) is not None:
-            await flip_coin(message)
-
-        # Role for getting Depth shark teams (5 max)
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(TEAM|Team|team)(_|\s|-)(SHARKS|Sharks|sharks)",
-                          message.content) is not None:
-            if regex.search("(M|m)\s(S|s)", message.content) is not None:
-                # Remove 'shark' from args list
-                del (args[0])
-
-        # Role for splitting tagged people into teams
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(TEAM|TEAMS|team|teams)", message.content) is not None:
-            await team_gen(message, args)
-
-        # Help command
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(HELP|help|Help)", message.content) is not None:
-            await bot_help(message)
-
-        # Alt name command
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(ALT|Alt|alt)(_|\s|-)?(NAME|Name|name)",
-                          message.content) is not None:
-            await altname(message, args)
-
-        # Update command
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(UPDATE|Update|update)", message.content) is not None:
-            await message.channel.send("Bot database updated.")
-
-        # Role-Type command
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(ROLE|Role|role)(\s|-|_)?(TYPE|Type|type)",
-                          message.content) is not None:
-            await roleType(message)
-
+        '''
         # IP-Get Command
         elif regex.search("^[" + BOT_PREFIX + "]\s?(IP|Ip|ip)(\s|-|_)?(ADDRESS|Address|address)?",
                           message.content) is not None:
             await getIP(message)
-
-        # General-Announcement Command
-        elif regex.search(
-                "^[" + BOT_PREFIX + "]\s?(ANNOUNCE|Announce|announce)|(ANNOUNCEMENT|Announcement|announcement)",
-                message.content) is not None:
-            await announce(message, args)
+        '''
 
 
 # ---[ Check User Authorization Command ]---
@@ -165,14 +151,11 @@ async def bot_help(message):
 
 # IP Address Command
 async def getIP(message):
-    # TODO confirm this displays outside IP and not internal
-    if is_authorized(message):
-        await message.channel.send("**Hostname:** {0}\n**IP:** {1}".format(
-            socket.gethostname(),
-            socket.gethostbyname(socket.gethostname())
-        ))
-    else:
-        await message.channel.send("You aren't authorized to use this command.")
+    # TODO confirm this displays outside IP and not internal (This doesnt work)
+    await message.channel.send("**Hostname:** {0}\n**IP:** {1}".format(
+        socket.gethostname(),
+        socket.gethostbyname(socket.gethostname())
+    ))
 
 
 # Dice Roll Command
@@ -245,53 +228,6 @@ async def team_gen(message, arg_list):
         to_send += "\n"
     channel = message.channel
     await channel.send(to_send)
-
-
-# Add alt name to role-name regex
-async def altname(message, args):
-    try:
-        if is_authorized(message):
-            # get the full role name from between " " in message
-            if not args[0][0] == '"':
-                # Missing '"' at start
-                await message.channel.send('You are missing " " around the role name you wish to '
-                                           'update with an alt-name')
-                return
-
-            # loop through all args to find one that ends with a '"'
-            found_end = False
-            for i in range(0, len(args)):
-                if args[i][-1:] == '"':
-                    marker = i
-                    found_end = True
-                    # mark element that ends with '"'
-
-            if not found_end:
-                # no end '"' was found
-                await message.channel.send('You are missing " " around the role name you wish to '
-                                           'update with an alt-name')
-                return
-
-            # build role-name
-            role_name = ""
-            print("marker: {0}".format(marker))
-            if marker != 0:
-                for i in range(0, marker + 1):
-                    role_name += args[i] + " "
-                role_name = role_name[:-1:]  # Strip off whitespace at end of concatenated string
-            else:
-                role_name = args[marker]
-            # remove '"' from start and end of string
-            role_name = role_name[1::]
-            role_name = role_name[:-1:]
-            print(role_name)
-        else:
-            await message.channel.send("You are not authorized to use this command.")
-
-    except IndexError:
-        await message.channel.send(
-            "Sorry, something went wrong. Try using the command again or try the help command to see if you used it correctly.")
-
 
 # role-type command
 async def roleType(message):
