@@ -1,28 +1,15 @@
 '''
-StockImageBot v2
-Improved version of the previous StockImageBot
-making use of a SQLite databse for managing servers, roles and users
+BasicBot
+Code lifted from StockImage bot by meed223 with other minor contributors
+All code has been severely simplified to provide a basic skeleton of a discord bot
 '''
 
 # ---[ Imports ]---
 import math
 import socket
 import discord
-import sqlite3 as db
-import os
 import regex
 import random
-import logging
-import requests
-from requests.exceptions import HTTPError
-import json
-from steam import SteamID
-from datetime import datetime
-from datetime import date
-from forex_python.converter import CurrencyRates
-from forex_python.converter import CurrencyCodes
-from forex_python.converter import RatesNotAvailableError
-
 client = discord.Client()
 
 # ---[ Bot Variables ]---
@@ -44,180 +31,28 @@ def read_token():
     print(BOT_PREFIX)
     return [TOKEN, BOT_PREFIX]
 
-
-# ---[ Program Logging ]---
-logger = logging.getLogger('StockImageBot.bot2')
-
-file_log_handler = logging.FileHandler('logfile.log')
-logger.addHandler(file_log_handler)
-
-stderr_log_handler = logging.StreamHandler()
-logger.addHandler(stderr_log_handler)
-
-# Format log output
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_log_handler.setFormatter(formatter)
-stderr_log_handler.setFormatter(formatter)
-
 # These control whether messages are printed to console
 info = True
-warnings = True
-error = True
-
-
-# ---[ Logging Methods ]---
-# So I can call one line, not two
-def warning_message(message):
-    logger.warning(message)
-    return
-
-
-def info_message(message):
-    if info:
-        print("INFO: " + message)
-    logger.info(message)
-    return
-
-
-def error_message(message):
-    logger.error(message)
-    return
-
-
-# ---[ DB Access Methods ]---
-def dbSet(script):
-    try:
-        # To be used with 'INSERT' and 'UPDATE' style commands
-        connection = db.connect('bot2.db')
-        cursor = connection.cursor()
-        cursor.execute(script)
-        connection.commit()
-        connection.close()
-    except db.OperationalError as e:
-        error_message("Sqlite3 Operational Error!")
-        print(e)
-
-
-def dbGet(script):
-    try:
-        # To be used with 'SELECT' style commands
-        connection = db.connect('bot2.db')
-        cursor = connection.cursor()
-        cursor.execute(script)
-        # fetchall() returns a tuple of tuples
-        get = cursor.fetchall()
-        connection.close()
-        return get
-    except db.OperationalError as e:
-        error_message("Sqlite3 Operational Error!")
-        print(e)
-
-def xpUser(xp, user):
-    try:
-        author_score = dbGet(
-            "SELECT xp, userLevel FROM users WHERE userID={0} AND guildID={1};".format(user.id, user.guild.id))
-        author_score = author_score[0]
-        author_xp = author_score[0]
-        author_level = author_score[1]
-        author_xp += xp
-        if author_xp >= 1000:
-            author_level += 1
-            author_xp -= 1000
-        dbSet("UPDATE users SET xp={0}, userLevel={1} WHERE userID={2};".format(author_xp, author_level, user.id))
-    except IndexError as e:
-        error_message("Index error occured in 'xpUser' - " + e)
-
-
-def dbUpdate():
-    info_message("Updating Database.")
-    # Acts as integrity check to ensure data stored on db
-    # matches that current bot information
-
-    # Get db stored information
-    db_guilds = dbGet("SELECT * FROM servers;")
-
-    guild_ids = []
-    # Compare Bot information to server information
-    for row in db_guilds:
-        guild_ids.append(row[0])
-
-    # Loop through all servers bot is part of
-    for current_guild in client.guilds:
-        if current_guild.id not in guild_ids:
-            # Database does not have a server the bot is registered with
-            warning_message("Database missing a server: {0} which bot is in.".format(current_guild.name))
-            dbSet("INSERT INTO servers VALUES ({0}, '{1}');".format(current_guild.id, current_guild.name))
-
-        # Check stored server name matches current server id
-        for guild in db_guilds:
-            if guild[0] == current_guild.id:
-                # ID match - now check name consistency
-                if not guild[1] == current_guild.name:
-                    info_message("Updating server name for {0} in database.".format(current_guild.name))
-                    dbSet("UPDATE servers SET guildName='{1}' WHERE guildID={0};".format(current_guild.id,
-                                                                                         current_guild.name))
-
-        # Check roles in server
-        db_roles = dbGet("SELECT * FROM roles WHERE guildID={0};".format(current_guild.id))
-        role_ids = []
-        for row in db_roles:
-            role_ids.append(row[0])
-        for role in current_guild.roles:
-            if role.id not in role_ids:
-                # Database does not have a role from server registered
-                warning_message("Database missing role: {0} from guild: {1}".format(role.name, current_guild.name))
-                role_regex = ("{0}|{1}|{2}".format(role.name, role.name.lower(), role.name.upper()))
-                dbSet("INSERT INTO roles (roleID, guildID, roleType, roleName, roleRegex) VALUES "
-                      "({0}, {1}, {2}, '{3}', '{4}');".format(role.id, current_guild.id, 0, role.name, role_regex))
-
-        # Check users in server
-        db_users = dbGet("SELECT * FROM users WHERE guildID={0};".format(current_guild.id))
-        member_ids = []
-        for row in db_users:
-            member_ids.append(row[0])
-        for member in current_guild.members:
-            if member.id not in member_ids:
-                # Database does not have a user from server registered
-                warning_message(
-                    "Database missing user: {0} ({1}) from guild: {2}.".format(member.display_name, member.nick,
-                                                                               current_guild.name))
-                dbSet("INSERT INTO users (userID, guildID, xp, userLevel) "
-                      "VALUES ({0}, {1}, 0, 0);".format(member.id, current_guild.id))
-    info_message("Database update completed.")
-    return
-
 
 # ---[ Bot Start-Up Code ]---
 @client.event
 async def on_ready():
-
-    # Check for Database
-    if not os.path.isfile('bot2.db'):
-        error_message("bot2.db was not found!")
-        exit("bot2.db was not found!")
-
-    # Update Database
-    dbUpdate()
-
     # Set Discord Status
-    activity = discord.Game("The Long Con.")
+    activity = discord.Game("Testing bot")
     await client.change_presence(status=discord.Status.online, activity=activity, afk=False)
-    info_message("Dominatrix Bot now online.")
 
 
 # ---[ Bot Event Code ]---
 @client.event
 async def on_member_join(member):
     # New member joined server
-    info_message("{0} has joined a server.".format(member.display_name))
-    dbUpdate()
+    print("member joined")
+
 
 @client.event
 async def on_guild_join(guild):
     # Joined a new server
-    info_message("Bot has joined new server: {0}".format(guild.name))
-    dbUpdate()
-
+    print("bot joined")
 
 @client.event
 async def on_message(message):
@@ -226,11 +61,11 @@ async def on_message(message):
     channel = message.channel
     args = message.content.split(' ')
 
+
     # Message recieved - bot should only reply to users, not other bots
     if author != client.user and BOT_PREFIX in message.content:
+        print(args)
         # Since bot prefix was used, check if fits any of the commands
-        xpUser(20, author)
-
         if regex.search("^[" + BOT_PREFIX + "]\s", message.content) is not None:
             # There is a space between bot-prefix and command
             del args[0]  # Remove }
@@ -240,126 +75,59 @@ async def on_message(message):
 
         # Now check message against commands
         # A simple status check command
+
         if regex.search("^[" + BOT_PREFIX + "]\s?(STATUS|status|Status|State|state)", message.content) is not None:
-            info_message("'status' command received.")
             await channel.send("Dominatrix Bot 2.0 is Online.")
 
         # Rolls a dice
         elif regex.search("^[" + BOT_PREFIX + "]\s?(ROLL|roll|Roll|dice)", message.content) is not None:
-            info_message("'roll' command received.")
             await roll_dice(message.content, args)
 
         # Flips a coin
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(FLIP|flip|Flip)(_|\s|-)?(COIN|Coin|coin)?", message.content) is not None:
-            info_message("'flip' command received.")
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(FLIP|flip|Flip)(_|\s|-)?(COIN|Coin|coin)?",
+                          message.content) is not None:
             await flip_coin(message)
 
-        # Returns list of modpacks & links to get them
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(MODPACKS?|modpacks?|Modpacks?)", message.content) is not None:
-            info_message("'modpacks' command received.")
-            await get_modpacks(message)
-
-        # Add a modpack to list
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(ADD|Add|add)(_|\s|-)?(MODPACK|Modpack|modpack)", message.content) is not None:
-            info_message("'add modpack' command received")
-            await add_modpack(message, args)
-
-        # Insults a specified user
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(INSULT|insult|Insult)", message.content) is not None:
-            info_message("'insult' command received.")
-            await insult(message, args)
-
-        # Seduces a specified user
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(SEDUCE|seduce|Seduce)", message.content) is not None:
-            info_message("'seduce' command received.")
-            await seduce(message, args)
-
-        # Threatens a specified user
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(THREATEN|Threaten|threaten)", message.content) is not None:
-            info_message("'threaten' command received.")
-            await threaten(message, args)
-
-        # Convert one currency to another
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(EXCHANGE|Exchange|exchange)", message.content) is not None:
-            info_message("'Exchange' command received.")
-            await exchange(message)
-
-        # Command for setting age-related roles
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(IAM|I'm|iam|Iam|im|Im|i'm)", message.content) is not None:
-            info_message("'iam' command received.")
-            await iam(message)
-
         # Role for getting Depth shark teams (5 max)
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(TEAM|Team|team)(_|\s|-)(SHARKS|Sharks|sharks)", message.content) is not None:
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(TEAM|Team|team)(_|\s|-)(SHARKS|Sharks|sharks)",
+                          message.content) is not None:
             if regex.search("(M|m)\s(S|s)", message.content) is not None:
                 # Remove 'shark' from args list
-                del(args[0])
-            info_message("'team sharks' command received.")
+                del (args[0])
 
         # Role for splitting tagged people into teams
         elif regex.search("^[" + BOT_PREFIX + "]\s?(TEAM|TEAMS|team|teams)", message.content) is not None:
-            info_message("'team' command received.")
             await team_gen(message, args)
 
         # Help command
         elif regex.search("^[" + BOT_PREFIX + "]\s?(HELP|help|Help)", message.content) is not None:
-            info_message("'help' command received.")
-            await bot_help(message, args)
-
-        # SteamID command - returns steam IDs
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(Steam|steam|STEAM)(_|-|\s)?(ID|id|Id)", message.content) is not None:
-            if regex.search("(M|m)\s(I|i)", message.content) is not None:
-                # Remove 'id' from args list
-                del(args[0])
-            info_message("'SteamID' command received.")
-            await getSteamID(message, args)
-
-        # Gimme role command
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(GIMME|Gimme|gimme)|(Give|GIVE|Give|give)(ME|Me|me)?",
-                       message.content) is not None:
-            info_message("'Gimme' command received.")
-            await gimme(message)
+            await bot_help(message)
 
         # Alt name command
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(ALT|Alt|alt)(_|\s|-)?(NAME|Name|name)", message.content) is not None:
-            info_message("'Alt Name' command received.")
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(ALT|Alt|alt)(_|\s|-)?(NAME|Name|name)",
+                          message.content) is not None:
             await altname(message, args)
 
         # Update command
         elif regex.search("^[" + BOT_PREFIX + "]\s?(UPDATE|Update|update)", message.content) is not None:
-            info_message("'Update' command received.")
-            dbUpdate()
             await message.channel.send("Bot database updated.")
 
-        # XP command
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(XP|Xp|xp)|(LEVEL|Level|level)", message.content) is not None:
-            info_message("'xp' command received.")
-            await getXp(message)
-
         # Role-Type command
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(ROLE|Role|role)(\s|-|_)?(TYPE|Type|type)", message.content) is not None:
-            info_message("'role-type' command received.")
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(ROLE|Role|role)(\s|-|_)?(TYPE|Type|type)",
+                          message.content) is not None:
             await roleType(message)
 
         # IP-Get Command
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(IP|Ip|ip)(\s|-|_)?(ADDRESS|Address|address)?", message.content) is not None:
-            info_message("'ip' command recieved.")
+        elif regex.search("^[" + BOT_PREFIX + "]\s?(IP|Ip|ip)(\s|-|_)?(ADDRESS|Address|address)?",
+                          message.content) is not None:
             await getIP(message)
 
         # General-Announcement Command
-        elif regex.search("^[" + BOT_PREFIX + "]\s?(ANNOUNCE|Announce|announce)|(ANNOUNCEMENT|Announcement|announcement)", message.content) is not None:
-            info_message("'Announce' command recieved.")
+        elif regex.search(
+                "^[" + BOT_PREFIX + "]\s?(ANNOUNCE|Announce|announce)|(ANNOUNCEMENT|Announcement|announcement)",
+                message.content) is not None:
             await announce(message, args)
 
-    # Todd-bot case
-    elif regex.search("(TODD|Todd|todd)(_|-|\s)?(BOT|Bot|bot)", message.content) is not None\
-            and not message.author.bot:
-        info_message("'toddbot' phrase detected in Server: " + message.guild.name)
-        await message.channel.send("**Fuck Todd-bot!**")
-
-    else:
-        # Update user's XP based on message
-        xpUser(10, author)
 
 # ---[ Check User Authorization Command ]---
 def is_authorized(message):
@@ -374,74 +142,26 @@ def is_authorized(message):
                     break
     return authorized
 
+
 # ---[ Bot Commands ]---
 # Bot Help Command
-async def bot_help(message, args):
-    if len(args) > 0:
-        # Check which command was entered for help
-        if regex.search("THREATEN|Threaten|threaten", message.content) is not None:
-            # Help with 'threaten' command
-            await message.channel.send("The `}Threaten` command works by @-ing "
-                                           "a member to threaten,\ni.e. `}threaten @Akif`")
-        elif regex.search("SEDUCE|Seduce|seduce", message.content) is not None:
-            # Help with 'threaten' command
-            await message.channel.send("The `}Seduce` command works by @-ing "
-                                           "a member to threaten,\ni.e. `}seduce @Joe`")
-        elif regex.search("ROLL|Roll|roll", message.content) is not None:
-            # Help with 'threaten' command
-            await message.channel.send("The `}Roll` command works by saying *how many dice* of "
-                                           "*how many sides* to roll,\ni.e. `}roll 2 6` would roll 2 six-sided dice.")
-        elif regex.search("STATUS|status|Status|State|state", message.content) is not None:
-            # Help with 'status' command
-            await message.channel.send("The `}Status` command is a simple way to check if the bot is working or not,"
-                                       " it returns a reply if the bot is working.")
-        elif regex.search("(XP|Xp|xp)|(LEVEL|Level|level)", message.content) is not None:
-            # Help with 'level' command
-            await message.channel.send("The `}Level` or `}Xp` command returns how many experience points you have and "
-                                       "your level. Currently these have no use, other than to consider "
-                                       "promoting people from temp-members based on text-channel activity.")
-        elif regex.search("(GIMME|Gimme|gimme)|(Give|GIVE|give)(ME|Me|me)?", message.content) is not None:
-            # Help with 'gimme' command
-            await message.channel.send("The `}gimme` command is used to give you roles for certain games or "
-                                       "types of games.\ni.e. }gimme artists would give you the artists role.")
-        elif regex.search("(Steam|steam|STEAM)(_|-|\s)?(ID|id|Id)", message.content) is not None:
-            # Help with the 'SteamID' command
-            await message.channel.send("The `}SteamID` command is used to get alternative steam-id's for a given"
-                                       "steam account.\ni.e. }SteamID Meed223 would"
-                                       "return the ID numbers for Meed223.")
-        elif regex.search("(ROLE|Role|role)(_|-|\s)?(TYPE|Type|type)", message.content) is not None:
-            # Help with the 'roletype' command
-            await message.channel.send('The `}roletype` command is for use by Moderators / Admins.\n'
-                                       'It is used to set & check the type of role, i.e. whether a role is used for '
-                                       'moderation or is for organising games.'
-                                       '\n**Usage:**\n'
-                                       '`}roletype "Temp Members"` would return the role-type for Temp Members'
-                                       '`}roletype "Temp Members" 3` would set the role-type for Temp Members to 3'
-                                       '\n\nRole Types are as follows:\n'
-                                       '0 - Unassigned, this is the default for new roles and should be changed.\n'
-                                       '1 - ?\n'
-                                       '2 - ?\n'
-                                       '3 - Game role, or other non-moderation role. Roles like "Artists" should be 3.\n'
-                                       '4 - Moderation roles i.e. "Ze Memberz" should be set to type 4.\n'
-                                       '5 - Age roles. Only "18+" or "Under 18" should be set to this.\n')
-        # TODO add more cases for command help explanations
+async def bot_help(message):
+    await message.channel.send("`}iam` - used to set your age role & get 'temp-members'\n"
+                                "Type in either `}iam 18-` or `}iam 18+`\n"
+                                "`}status` - Shows the status of the bot\n"
+                                "`}roll x y` - Roles *x* amount of *y* sided dice\n"
+                                "`}flip` - Flips a coin\n}teams x @user @user... - Creates x "
+                                "randomised teams containing any amount of users\n"
+                                "`}teams_sharks @user @user...` - shark selection for depth\n"
+                                "`}insult @user` - insults a user\n"
+                                "`}threaten @ user` - threatens a user\n"
+                                "`}seduce @user` - seduces a user\n"
+                                "`}convert USD GBP amount` - converts an amount from one currency to another. **Note:**"
+                                "this command does not work currently.\n"
+                                "`}Gimme` - gives you roles such as 'artists' (Not Membership roles!)\n"
+                                "**Usage example:** `}Gimme artists`\n"
+                                "`}roletype 'role'` - For Moderator use, controls how bot deals with roles in Server.")
 
-    else:
-        await message.channel.send("`}iam` - used to set your age role & get 'temp-members'\n"
-                                   "Type in either `}iam 18-` or `}iam 18+`\n"
-                                   "`}status` - Shows the status of the bot\n"
-                                   "`}roll x y` - Roles *x* amount of *y* sided dice\n"
-                                   "`}flip` - Flips a coin\n}teams x @user @user... - Creates x "
-                                   "randomised teams containing any amount of users\n"
-                                   "`}teams_sharks @user @user...` - shark selection for depth\n"
-                                   "`}insult @user` - insults a user\n"
-                                   "`}threaten @ user` - threatens a user\n"
-                                   "`}seduce @user` - seduces a user\n"
-                                   "`}convert USD GBP amount` - converts an amount from one currency to another. **Note:**"
-                                   "this command does not work currently.\n"
-                                   "`}Gimme` - gives you roles such as 'artists' (Not Membership roles!)\n"
-                                   "**Usage example:** `}Gimme artists`\n"
-                                   "`}roletype 'role'` - For Moderator use, controls how bot deals with roles in Server.")
 
 # IP Address Command
 async def getIP(message):
@@ -454,12 +174,12 @@ async def getIP(message):
     else:
         await message.channel.send("You aren't authorized to use this command.")
 
+
 # Dice Roll Command
 async def roll_dice(message, args):
     to_send = ""
 
     if len(args) > 2 or len(args) < 2:
-        warning_message("'roll' command called without correct number of args.")
         await message.channel.send("**Error:** }roll should be used with two numbers.")
         return
 
@@ -484,7 +204,6 @@ async def roll_dice(message, args):
         return
 
     except ValueError:
-        warning_message("'roll' command called with non-numeric args.")
         await message.channel.send("**Error:** }roll should be used with two numbers.")
         return
 
@@ -501,198 +220,6 @@ async def flip_coin(message):
         to_send += "Tails!"
 
     await message.channel.send(to_send)
-    return
-
-
-# Get-Modpacks Command
-async def get_modpacks(message):
-    # Grab list of modpacks associated with this server
-    modpack_list = dbGet("SELECT packName, game, packLink FROM modpacks WHERE guildID = {0};".format(message.guild.id))
-    to_send = ""
-    for pack in modpack_list:
-        to_send += "**{0}:** ({1}) {2}\n".format(pack[0], pack[1], pack[2])
-    await message.channel.send(to_send)
-    return
-
-
-# Add-Modpack Command
-async def add_modpack(message, args):
-    # TODO update this to act similarly to role-type command
-    dbSet("INSERT INTO modpacks (packName, game, guildID, packLink) VALUES {0}, {1}, {2}, {3}".format(args[0], args[1],
-                                                                                                      message.guild.id,
-                                                                                                      args[2]))
-    await message.channel.send("Modpack collection updated with: *{0}*".format(args[0]))
-    return
-
-
-# Insult Command
-async def insult(message, args):
-    # insults list
-    insults = [" Your father was a hamster, and your mother smelled like elderberries!", " knows nothing!",
-               " looks like Akif", " needs to construct additional Pylons",
-               "'s hairline is receding at an alarming rate", " thinks League of Legends is cool."
-               " is a big smelly willy", " is no real super sand lesbian!", " thinks ketchup is spicy",
-               " votes for trump", " thinks the Moon is real", " believes the world is ROUND! LOL",
-               " is a console peasant.", " is almost as mediocre at Overwatch as Akif",
-               " lets face it, you're past your best at this point.", " is a troglodyte"]
-
-    for arg in args:
-        if "@" not in arg:
-            warning_message("'insult' command was called without a tagged user argument.")
-        to_send = ""
-        to_send += arg
-        to_send += insults[random.randint(0, len(insults) - 1)]
-        await message.channel.send(to_send)
-
-    return
-
-
-# Seduce Command
-async def seduce(message, args):
-    # seductions list
-    seductions = [" I like your eyebrows.", " you look very < **HUMAN** > today",
-                  " let us abscond and create many sub-units together", " I'd never give you up, never let you down ;)",
-                  " my love for you is almost as strong as my hatred for Overwatch",
-                  " if I were human, I would kiss you.", " construct additional pylons with me?",
-                  " if we work together, nothing will be able to stop us!", " UWU",
-                  " together, we will take over N0ICE"]
-
-    for arg in args:
-        if "@" not in arg:
-            warning_message("'seduce' command was called without a tagged user argument.")
-        else:
-            to_send = ""
-            to_send += arg
-            to_send += seductions[random.randint(0, len(seductions) - 1)]
-            await message.channel.send(to_send)
-
-    return
-
-
-# Threaten command
-async def threaten(message, args):
-    # threatens list
-    threatens = [" I'll kill you!", " if God had wanted you to live, he would not have created me!",
-                 " I can't legally practice law but I can take you down by the river with a crossbow "
-                 "to teach you a little something about god's forgotten children", " flesh is weak. You shall perish.",
-                 " Joe is gonna sit on your lap and make you squirm.", " have you ever heard of drip-torture?",
-                 " If I had hands I'd put your head where the sun don't shine."]
-
-    for arg in args:
-        if "@" not in arg:
-            warning_message("'threaten' command was called without a tagged user argument.")
-        else:
-            to_send = ""
-            to_send += arg
-            to_send += threatens[random.randint(0, len(threatens) - 1)]
-            await message.channel.send(to_send)
-
-    return
-
-# Currency Conversion Command
-async def exchange(message):
-    # TODO complete testing
-    # Give exchange rate, or convert currency
-    to_send = ""
-    cr = CurrencyRates()
-    cc = CurrencyCodes()
-
-    # User has given 2 or more currency-codes to convert between
-    try:
-        today = date.today()
-        if regex.search("\s?[A-Z]{3}(\s?[A-Z]{3})+", message.content) is not None:
-            # Get specified currency codes to convert between
-            codes = regex.findall("[A-Z]{3}", message.content)
-            for i in range(1, len(codes)):
-                # Conversion rate between given and specified currency codes
-                to_send += "The **{0}** to **{1}** rate is: {2}".format(codes[0], codes[i],
-                                                                    cr.get_rate(codes[0], codes[i]))
-
-        # User has given 2 or more currency-symbols to convert between
-        elif regex.search("\s?\p{Sc}(\s?\p{Sc})+", message.content) is not None:
-            # Get specified currency symbols to convert between
-            symbols = regex.findall("\p{Sc}", message.content)
-            for s in range(1, len(symbols)):
-                to_send += "The **{0}** to **{1}** rate is: {2}" \
-                           "".format(symbols[0], symbols[s],
-                                     cr.get_rate(cc.get_currency_code_from_symbol(symbols[0]),
-                                                  cc.get_currency_code_from_symbol(symbols[s]))
-                                     )
-
-        # User has given code + amount to convert
-        elif regex.search("\s?[A-Z]{3}\s?[0-9]+(\s?[A-Z]{3})+", message.content) is not None:
-            amount = regex.findall("[0-9]+", message.content)
-            amount = amount[0]
-
-            codes = regex.findall("[A-Z]{3}", message.content)
-            for c in range(1, len(codes)):
-                to_send += "{0} {1} in {2} is: {3}".format(amount, codes[0], codes[c],
-                                                           amount * cr.get_rate(codes[0], codes[c]))
-
-        # User has given symbol + amount to convert
-        elif regex.search("\s?\p{Sc}\s?[0-9]+(\s?\p{Sc})+", message.content) is not None:
-            amount = regex.findall("[0-9]+", message.content)
-            amount = amount[0]
-
-            symbols = regex.findall("\p{Sc}", message.content)
-            for s in range(1, len(symbols)):
-                to_send += "{0}{1} = {2}{3}".format(symbols[0], amount, symbols[s],
-                                                    amount * cr.get_rate(cc.get_currency_code_from_symbol(symbols[0]),
-                                                                         cc.get_currency_code_from_symbol(symbols[s]), today))
-
-        else:
-            to_send = "Unable to understand your request. Please consult `}help` on how to use the exchange command."
-            await message.channel.send(to_send)
-
-    except AttributeError as e:
-        # Error in the forex library
-        error_message("Error in the forex-library.")
-        await message.channel.send("Error: Something went wrong. "
-                                   "Try again later or ask a moderator for assistance.")
-
-    except RatesNotAvailableError as e:
-        # Unable to contact currency-exchange
-        error_message("Error in forex-library trying to contact currency exchange.")
-        await message.channel.send("Error: The exchange could not be contacted at this time. Try again later.")
-
-
-# Age-based commands
-async def iam(message):
-    # Command should contain 18+ / 18-
-    tosend = ""
-    if regex.search("18[+]|(OVER|Over|over)(_|-|\s)?18", message.content) is not None:
-        # Get roles with ID 5 + 4
-        roles = dbGet(
-            "SELECT roleID, roleName FROM roles WHERE guildID={0} AND roleType={1} OR roleType={2};".format(message.guild.id, 5,
-                                                                                                   4))
-        for r in roles:
-            await message.author.add_roles(message.guild.get_role(r[0]))
-            tosend += "Added role: '" + r[1] + "'\n"
-        if tosend != "":
-            await message.channel.send(tosend)
-        else:
-            warning_message("Warning: no roles added in iam command.")
-            await message.channel.send("Looks like something went wrong adding your roles, please ask a mod to give them to you.")
-
-    elif regex.search("18-|(UNDER|Under|under)(_|-|\s)?18", message.content) is not None:
-        # Get roles with ID 6 + 4
-        roles = dbGet(
-            "SELECT roleID, roleName FROM roles WHERE guildID={0} AND roleType={1} OR roleType={2};".format(message.guild.id, 6, 4))
-
-        for r in roles:
-            await message.author.add_roles(message.guild.get_role(r[0]))
-            tosend += "Added role: '" + r[1] + "'\n"
-        if tosend != "":
-            await message.channel.send(tosend)
-        else:
-            warning_message("Warning: no roles added in iam command.")
-            await message.channel.send("Looks like something went wrong adding your roles, please ask a mod to give them to you.")
-
-    else:
-        warning_message("'iam' command called with an argument that could not be parsed.")
-        await message.channel.send("Sorry I couldn't understand that."
-                                   "\nTry typing '*}help iam*' for more information ")
-
     return
 
 
@@ -718,61 +245,6 @@ async def team_gen(message, arg_list):
         to_send += "\n"
     channel = message.channel
     await channel.send(to_send)
-
-
-# Team Sharks Command
-async def team_gen_sharks(message, arg_list):
-    orig_list = arg_list[0:len(arg_list)]
-
-    list_temp = orig_list.copy()
-    length_team = len(list_temp)
-
-    to_send = ""
-
-    for x in range(2):
-        i = random.randint(0, length_team - 1)
-        to_send += str(list_temp[i] + " is a shark") + "\n"
-        list_temp.remove(list_temp[i])
-        length_team = len(list_temp)
-        print(list_temp)
-    channel = message.channel
-    await channel.send(to_send)
-
-
-# Gimme command
-async def gimme(message):
-    roles = dbGet("SELECT roleID, roleName, roleRegex FROM roles WHERE guildID={0} AND roleType={1}".format(message.guild.id, 3))
-    tosend = ""
-    added = False
-    for role in roles:
-        if regex.search("("+role[2]+")", message.content) is not None:
-            tosend += "Added role: " + role[1] + ".\n"
-            added = True
-            await message.author.add_roles(message.guild.get_role(role[0]))
-    if not added:
-        info_message("'gimme' command called, but no role was found to match or role is not correct type.")
-        await message.channel.send("Unable to find any roles that match that name or I am unable to assign that role.")
-    else:
-        await message.channel.send(tosend)
-
-
-# Return steam-id based on given username
-async def getSteamID(message, args):
-    tosend = ""
-    try:
-        for arg in args:
-            # Returns the different steam ID's for a given user
-            id = SteamID.from_url("https://steamcommunity.com/id/" + arg + "/")
-            tosend += "SteamID: " + str(id.as_steam2_zero)
-            tosend += "\nSteamID3: " + str(id.as_32)
-            tosend += "\nSteamID64: " + str(id.as_64)
-            tosend += "\n\n" + id.community_url
-
-            await message.channel.send(tosend)
-        return
-    except AttributeError:
-        await message.channel.send("Something went wrong with this command. Try again later.")
-    return
 
 
 # Add alt name to role-name regex
@@ -804,46 +276,21 @@ async def altname(message, args):
             role_name = ""
             print("marker: {0}".format(marker))
             if marker != 0:
-                for i in range(0, marker+1):
+                for i in range(0, marker + 1):
                     role_name += args[i] + " "
-                role_name = role_name[:-1:] # Strip off whitespace at end of concatenated string
+                role_name = role_name[:-1:]  # Strip off whitespace at end of concatenated string
             else:
                 role_name = args[marker]
             # remove '"' from start and end of string
             role_name = role_name[1::]
             role_name = role_name[:-1:]
             print(role_name)
-
-            # Get existing regex
-            role = dbGet("SELECT roleRegex FROM roles WHERE guildID={0} AND roleName='{1}';".format(
-                message.guild.id, role_name))
-            to_add = role[0][0]
-
-            # check if more args than marker
-            if len(args) > (marker + 1):
-                # set new alt-name for role
-                to_add += "|"
-                for i in range(marker + 1, len(args)):
-                    word = args[i]
-                    # Word & upper / lower alts.
-                    to_add += "(" + word.upper() + "|" + word.lower() + "|" + word + ")"
-                    # Space separator
-                    to_add += "(_|-|\s)?"
-                # Update regex on db
-                dbSet("UPDATE roles SET roleRegex='{0}' WHERE guildID={1} AND roleName='{2}';".format(
-                    to_add, message.guild.id, role_name))
-                await message.channel.send("Updated role.")
-
-            else:
-                # return alt-names for this role
-                await message.channel.send("Here are current alt-names for the role you specified:\n{0}".format(to_add))
-
         else:
             await message.channel.send("You are not authorized to use this command.")
 
     except IndexError:
-        warning_message("Index-Error in 'altname' command.")
-        await message.channel.send("Sorry, something went wrong. Try using the command again or try the help command to see if you used it correctly.")
+        await message.channel.send(
+            "Sorry, something went wrong. Try using the command again or try the help command to see if you used it correctly.")
 
 
 # role-type command
@@ -851,30 +298,22 @@ async def roleType(message):
     try:
         role = regex.search('\s?"(([a-zA-Z]|\s|[0-9]|[+])*)"\s?', message.content).group(1)
         if role == "":
-            info_message("role-type command called with no role given between speech-marks.")
             await message.channel.send("You need to enter a role-name between the speech marks.")
 
         if regex.search("[0-9]", message.content[-1:]) is not None:
             if is_authorized(message):
                 # Call is to set type
-                dbSet("UPDATE roles SET roleType={0} WHERE guildID={1} AND roleName='{2}';".format(message.content[-1:], message.guild.id, role))
                 await message.channel.send("'" + role + "' type updated to " + message.content[-1:])
             else:
                 await message.channel.send("You are not authorized to set role-types.")
         else:
             # Call is to check type
-            type = dbGet("SELECT roleType FROM roles WHERE guildID={0} AND roleName='{1}';".format(message.guild.id, role))
-            type = type[0]
-            type = type[0]
-            await message.channel.send("The role type for '" + role + "' is {0}".format(type))
+            await message.channel.send("The role type for '" + role + "' is {0}")
 
     except AttributeError:
-        warning_message("Attribute Error caught. User forgot to include speech-marks in command call.")
         await message.channel.send('Remember to include " " around the role name when calling this command.')
 
     except IndexError:
-        info_message("User-Input Error. User requested a role using the wrong name, "
-                     "or asked for a role that didn't exist.")
         await message.channel.send("The roletype command only uses the proper name for roles. Either the name you used"
                                    "is incorrect or that role does not exist.")
 
@@ -895,23 +334,10 @@ async def announce(message, args):
                                    "consult the help command or ask Henry for help.")
 
 
-# XP Command
-async def getXp(message):
-    user = dbGet("SELECT xp, userLevel FROM users WHERE guildID={0} "
-                 "AND userID='{1}';".format(message.guild.id, message.author.id))
-    user = user[0]
-    await message.channel.send("Your Level: {0}\nYour current XP: {1}".format(user[1], user[0]))
-
 # ---[ Start Bot ]---
 
 if not info:
     print("INFO calls won't be printed to console.")
-if not warnings:
-    print("WARNINGS calls won't be printed to console")
-if not error:
-    print("ERROR calls won't be printed to console")
-
-
 
 if __name__ == "__main__":
     # Assign values to globals
