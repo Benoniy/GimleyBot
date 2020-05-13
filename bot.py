@@ -5,6 +5,7 @@ All code has been severely simplified to provide a basic skeleton of a discord b
 '''
 
 # ---[ Imports ]---
+import time
 import math
 import socket
 import discord
@@ -36,13 +37,13 @@ class Switcher(object):
         return flip_coin(message)
 
     def teams(self, message, args):
-        team_gen(message, args)
+        return team_gen(message, args)
 
     def ip(self, message, args):
         return getIP(message)
 
     def announce(self, message, args):
-        announce(message, args)
+        return announce(message, args)
 
 
 def read_token():
@@ -104,8 +105,6 @@ async def on_message(message):
         del args[0]
         switch = Switcher()
         await switch.indirect(command, message, args)
-
-        print(command)
 
         '''
         # IP-Get Command
@@ -229,6 +228,7 @@ async def team_gen(message, arg_list):
     channel = message.channel
     await channel.send(to_send)
 
+
 # role-type command
 async def roleType(message):
     try:
@@ -263,8 +263,6 @@ async def announce(message, args):
             tosend += args[i] + " "
         tosend += "\n*this message will automatically deleted in 30 minutes*"
         await message.channel.send("Message will be announced in #General-Tomfoolery and deleted 30 minutes from now.")
-        to_delete = await announce_channel.fetch_message(announce_channel.last_message_id)
-        await to_delete.delete(delay=1800)
     except IndexError:
         await message.channel.send("Please write a message. If you think you used this command correctly, "
                                    "consult the help command or ask Henry for help.")
