@@ -1,4 +1,3 @@
-import discord
 import socket
 import random
 import regex
@@ -8,21 +7,44 @@ from bot import is_authorized
 
 async def bot_help(message):
     """ Provides a list of commands to the user """
-    await message.channel.send("`}iam` - used to set your age role & get 'temp-members'\n"
-                               "Type in either `}iam 18-` or `}iam 18+`\n"
-                               "`}status` - Shows the status of the bot\n"
-                               "`}roll x y` - Roles *x* amount of *y* sided dice\n"
-                               "`}flip` - Flips a coin\n}teams x @user @user... - Creates x "
-                               "randomised teams containing any amount of users\n"
-                               "`}teams_sharks @user @user...` - shark selection for depth\n"
+    await message.channel.send("`}iam` - used to set your age "
+                               "role & get 'temp-members'\n"
+
+                               "Type in either `}iam 18-` or "
+                               "`}iam 18+`\n"
+
+                               "`}status` - Shows the status of "
+                               "the bot\n"
+
+                               "`}roll x y` - Roles *x* amount of *y* "
+                               "sided dice\n"
+
+                               "`}flip` - Flips a coin\n"
+
+                               "}teams x @user @user... - Creates x "
+                               "randomised teams containing any amount "
+                               "of users\n"
+
+                               "`}teams_sharks @user @user...` - shark "
+                               "selection for depth\n"
+
                                "`}insult @user` - insults a user\n"
+
                                "`}threaten @ user` - threatens a user\n"
+
                                "`}seduce @user` - seduces a user\n"
-                               "`}convert USD GBP amount` - converts an amount from one currency to another. **Note:**"
+
+                               "`}convert USD GBP amount` - converts an "
+                               "amount from one currency to another. **Note:**"
                                "this command does not work currently.\n"
-                               "`}Gimme` - gives you roles such as 'artists' (Not Membership roles!)\n"
+
+                               "`}Gimme` - gives you roles such as "
+                               "'artists' (Not Membership roles!)\n"
+
                                "**Usage example:** `}Gimme artists`\n"
-                               "`}roletype 'role'` - For Moderator use, controls how bot deals with roles in Server.")
+
+                               "`}roletype 'role'` - For Moderator use, "
+                               "controls how bot deals with roles in Server.")
 
 
 async def get_ip(message):
@@ -36,10 +58,6 @@ async def get_ip(message):
 async def roll_dice(message, args):
     """ Rolls a specified number of user defined dice """
     to_send = ""
-
-    if len(args) > 2 or len(args) < 2:
-        await message.channel.send("**Error:** }roll should be used with two numbers.")
-        pass
 
     try:
         # Send values specified in message to int
@@ -61,7 +79,7 @@ async def roll_dice(message, args):
         await message.channel.send(to_send)
 
     except ValueError:
-        await message.channel.send("**Error:** }roll should be used with two numbers.")
+        await message.channel.send("**Error:** }roll should have 2 arguments!")
 
 
 async def flip_coin(message):
@@ -104,37 +122,55 @@ async def team_gen(message, arg_list):
 # role-type command
 async def roleType(message):
     try:
-        role = regex.search('\s?"(([a-zA-Z]|\s|[0-9]|[+])*)"\s?', message.content).group(1)
+        role = regex.search('\s?"(([a-zA-Z]|\s|[0-9]|[+])*)"\s?',
+                            message.content).group(1)
         if role == "":
-            await message.channel.send("You need to enter a role-name between the speech marks.")
+            await message.channel.send("You need to enter a role-name "
+                                       "between the speech marks.")
 
         if regex.search("[0-9]", message.content[-1:]) is not None:
             if is_authorized(message):
                 # Call is to set type
-                await message.channel.send("'" + role + "' type updated to " + message.content[-1:])
+                await message.channel.send("'" + role +
+                                           "' type updated to " +
+                                           message.content[-1:])
             else:
-                await message.channel.send("You are not authorized to set role-types.")
+                await message.channel.send("You are not authorized "
+                                           "to set role-types.")
         else:
             # Call is to check type
-            await message.channel.send("The role type for '" + role + "' is {0}")
+            await message.channel.send("The role type for '"
+                                       + role + "' is {0}")
 
     except AttributeError:
-        await message.channel.send('Remember to include " " around the role name when calling this command.')
+        await message.channel.send('Remember to include " " '
+                                   'around the role name when '
+                                   'calling this command.')
 
     except IndexError:
-        await message.channel.send("The roletype command only uses the proper name for roles. Either the name you used"
-                                   "is incorrect or that role does not exist.")
+        await message.channel.send("The roletype command only uses "
+                                   "the proper name for roles. Either "
+                                   "the name you used is incorrect or "
+                                   "that role does not exist.")
 
 
 # announcement command
 async def announce(message, args):
-    announce_channel = discord.utils.get(message.guild.text_channels, name="general-tomfoolery")
+    # announce_channel = discord.utils.get(message.guild.text_channels,
+    #                                      name="general-tomfoolery")
     tosend = "**<@" + str(message.author.id) + "> would like to announce:**\n"
+
     try:
         for i in range(0, len(args)):
             tosend += args[i] + " "
-        tosend += "\n*this message will automatically deleted in 30 minutes*"
-        await message.channel.send("Message will be announced in #General-Tomfoolery and deleted 30 minutes from now.")
+        tosend += "\n*this message will be deleted " \
+                  "automatically  in 30 minutes*"
+
+        await message.channel.send("Message will be announced in "
+                                   "#General-Tomfoolery and deleted 30 "
+                                   "minutes from now.")
     except IndexError:
-        await message.channel.send("Please write a message. If you think you used this command correctly, "
-                                   "consult the help command or ask Henry for help.")
+        await message.channel.send("Please write a message. If you think "
+                                   "you used this command correctly, "
+                                   "consult the help command or ask "
+                                   "Henry for help.")

@@ -1,11 +1,16 @@
-"""
-BasicBot
-Code lifted from StockImage bot by meed223 with other minor contributors
-"""
+# BasicBot
+# Code lifted from StockImage bot by meed223 with other minor contributors
 
-from Commands import *
 
-""" Global Variables """
+import logging
+import discord
+from regex import regex
+
+import Commands
+
+logging.basicConfig(filename="log.txt", level=logging.DEBUG, filemode="w")
+
+# Global Variables
 client = discord.Client()
 TOKEN = ""
 BOT_PREFIX = ""
@@ -13,30 +18,31 @@ BOT_PREFIX = ""
 
 class Switcher(object):
     """ This switcher is based on the names of commands """
+
     def indirect(self, i, message, args):
         method = getattr(self, i, lambda: "invalid")
         return method(message, args)
 
     def help(self, message, args):
-        return bot_help(message)
+        return Commands.bot_help(message)
 
     def status(self, message, args):
         return message.channel.send("Bot is Online.")
 
     def roll(self, message, args):
-        return roll_dice(message, args)
+        return Commands.roll_dice(message, args)
 
     def flip(self, message, args):
-        return flip_coin(message)
+        return Commands.flip_coin(message)
 
     def teams(self, message, args):
-        return team_gen(message, args)
+        return Commands.team_gen(message, args)
 
     def ip(self, message, args):
-        return get_ip(message)
+        return Commands.get_ip(message)
 
     def announce(self, message, args):
-        return announce(message, args)
+        return Commands.announce(message, args)
 
 
 def setup():
@@ -48,14 +54,18 @@ def setup():
     global BOT_PREFIX
     BOT_PREFIX = file.readline().replace("\n", "")
     file.close()
+    logging.info(f"Bot token '{TOKEN}' and prefix '{BOT_PREFIX}' are set")
 
 
 # ---[ Bot Event Code ]---
 @client.event
 async def on_ready():
     """ Set Discord Status """
-    print(f"Bot is running")
-    await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="commands"))
+    logging.info("Bot is Ready")
+    print("Bot is Ready")
+    await client.change_presence(activity=discord.Activity(
+                                 type=discord.ActivityType.listening,
+                                 name="commands"))
 
 
 @client.event
@@ -108,4 +118,5 @@ if __name__ == "__main__":
         setup()
         client.run(TOKEN)
     except FileNotFoundError:
-        print("File was not found, are you sure that 'token.txt' exists?")
+        logging.error("File was not found, "
+                      "are you sure that 'token.txt' exists?")
