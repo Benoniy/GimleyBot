@@ -3,6 +3,12 @@
 
 
 import logging
+import threading
+import time
+import typing
+import functools
+import asyncio
+
 import discord
 from regex import regex
 
@@ -37,9 +43,23 @@ async def on_ready():
     """ Set Discord Status """
     logging.info("Bot is Ready")
     print("Bot is Ready")
-    await client.change_presence(activity=discord.Activity(
-                                 type=discord.ActivityType.listening,
-                                 name="commands"))
+
+    await presence_task()
+
+
+async def presence_task():
+    while True:
+        if Commands.check_server_ping():
+            await client.change_presence(status=discord.Status.online,
+                                         activity=discord.Activity(
+                                             type=discord.ActivityType.playing,
+                                             name="Server is running :)"))
+        else:
+            await client.change_presence(status=discord.Status.do_not_disturb,
+                                         activity=discord.Activity(
+                                             type=discord.ActivityType.playing,
+                                             name="Server is not running :("))
+        await asyncio.sleep(10)
 
 
 @client.event

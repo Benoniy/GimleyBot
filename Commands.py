@@ -15,7 +15,7 @@ async def bot_help(message, op_userfile):
     await message.channel.send(response)
 
 
-async def server_status(message, send_message):
+def check_server_ping():
     hostname = "gimley"  # example
     if platform == "win32":
         response = os.system("ping -n 1 " + hostname)
@@ -24,6 +24,16 @@ async def server_status(message, send_message):
 
     # and then check the response...
     if response == 0:
+        return True
+    else:
+        return False
+
+
+async def server_status(message, send_message):
+    response = check_server_ping()
+
+    # and then check the response...
+    if response:
         if send_message:
             await message.channel.send("Server is up")
         return True
