@@ -2,11 +2,17 @@ import os
 from sys import platform
 
 
-async def bot_help(message):
+async def bot_help(message, op_userfile):
     """ Provides a list of commands to the user """
-    await message.channel.send("`}status` - Shows the status of "
-                               "the server\n"
-                               )
+    response = "`status` - Shows the status of "\
+               "the server\n"
+
+    if str(message.author) in get_op_users(op_userfile):
+        response += "`start_server` - Will start the server\n"\
+                    "`add_op` - Adds an op user, grants access to commands like start_server\n"\
+                    "`remove_op` - Removes an op user\n"
+
+    await message.channel.send(response)
 
 
 async def server_status(message, send_message):
@@ -36,23 +42,59 @@ async def start_server(message):
             os.system('wakeonlan 40:16:7e:ad:19:bc')
 
 
-# announcement command
-async def announce(message, args):
-    # announce_channel = discord.utils.get(message.guild.text_channels,
-    #                                      name="general-tomfoolery")
-    tosend = "**<@" + str(message.author.id) + "> would like to announce:**\n"
+def get_op_users(op_userfile):
+    file = open(op_userfile, "r")
+    lines = file.readlines()
+    ops = []
+    for line in lines:
+        ops.append(line.strip("\n"))
 
-    try:
-        for i in range(0, len(args)):
-            tosend += args[i] + " "
-        tosend += "\n*this message will be deleted " \
-                  "automatically  in 30 minutes*"
+    return ops
 
-        await message.channel.send("Message will be announced in "
-                                   "#General-Tomfoolery and deleted 30 "
-                                   "minutes from now.")
-    except IndexError:
-        await message.channel.send("Please write a message. If you think "
-                                   "you used this command correctly, "
-                                   "consult the help command or ask "
-                                   "Henry for help.")
+
+async def add_op_user(message, args, op_userfile):
+    ops = get_op_users(op_userfile)
+
+    # Get all users
+    user_list = []
+    for member in message.guild.members:
+        user_list.append(member.name + "#" + member.discriminator)
+
+    if str(message.author) in ops:
+        file = open(op_userfile, "a")
+
+        for arg in args:
+            if arg not in user_list:
+                await message.channel.send(arg + " is not a user on this server!")
+
+            elif arg in ops:
+                await message.channel.send(arg + " is already op!")
+            else:
+                file.write(arg + "\n")
+                await message.channel.send(arg + " added as op!")
+
+        file.close()
+    else:
+        await message.channel.send("You do not have permission to add op users!")
+
+
+async def remove_op_user(message, args, op_userfile):
+    ops = get_op_users(op_userfile)
+
+    if str(message.author) in ops:
+        file = open(op_userfile, "w")
+
+        for arg in args:
+            if arg not in ops:
+                await message.channel.send(arg + " is not an op user on this server!")
+
+            elif arg in ops and arg != "Benoniy#1944":
+                await message.channel.send(arg + " has been removes as an op user!")
+                ops.remove(arg)
+
+        for op in ops:
+            file.write(op + "\n")
+        file.close()
+    else:
+        await message.channel.send("You do not have permission to add op users!")
+

@@ -16,26 +16,7 @@ intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 TOKEN = ""
 BOT_PREFIX = ""
-
-
-class Switcher(object):
-    """ This switcher is based on the names of commands """
-
-    def indirect(self, i, message, args):
-        method = getattr(self, i, lambda: "invalid")
-        return method(message, args)
-
-    def help(self, message, args):
-        return Commands.bot_help(message)
-
-    def status(self, message, args):
-        return Commands.server_status(message, True)
-
-    def start_server(self, message, args):
-        return Commands.start_server(message)
-
-    def announce(self, message, args):
-        return Commands.announce(message, args)
+OP_USERFILE = "ops.cfg"
 
 
 def setup():
@@ -62,23 +43,10 @@ async def on_ready():
 
 
 @client.event
-async def on_member_join(member):
-    """  New member joined server """
-    print("member joined")
-
-
-@client.event
-async def on_guild_join(guild):
-    """  Joined a new server """
-    print("bot joined")
-
-
-@client.event
 async def on_message(message):
     """  This is run when a message is received on any channel """
     author = message.author
     o_args = message.content.split(' ')
-
     if author != client.user and BOT_PREFIX in message.content:
         o_args[0] = o_args[0].replace(BOT_PREFIX, "")
         args = []
@@ -88,8 +56,30 @@ async def on_message(message):
 
         command = args[0].lower()
         del args[0]
-        switch = Switcher()
-        await switch.indirect(command, message, args)
+
+        if command == "status":
+            await Commands.server_status(message, True)
+        elif command == "help":
+            await Commands.bot_help(message, OP_USERFILE)
+        elif command == "start_server":
+            await Commands.start_server(message)
+        elif command == "add_op":
+            await Commands.add_op_user(message, args, OP_USERFILE)
+        elif command == "remove_op":
+            await Commands.remove_op_user(message, args, OP_USERFILE)
+        else:
+            await Commands.bot_help(message, OP_USERFILE)
+
+@client.event
+async def on_member_join(member):
+    """  New member joined server """
+    print("member joined")
+
+
+@client.event
+async def on_guild_join(guild):
+    """  Joined a new server """
+    print("bot joined")
 
 
 def is_authorized(message):
