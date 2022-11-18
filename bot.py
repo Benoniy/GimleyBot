@@ -59,7 +59,7 @@ async def presence_task():
                                          activity=discord.Activity(
                                              type=discord.ActivityType.playing,
                                              name="Server is not running :("))
-        await asyncio.sleep(10)
+        await asyncio.sleep(5)
 
 
 @client.event
@@ -67,6 +67,8 @@ async def on_message(message):
     """  This is run when a message is received on any channel """
     author = message.author
     o_args = message.content.split(' ')
+    print(o_args[0])
+    print(BOT_PREFIX)
     if author != client.user and o_args[0] == BOT_PREFIX:
 
         o_args[0] = o_args[0].replace(BOT_PREFIX, "")

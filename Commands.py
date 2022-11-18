@@ -19,9 +19,9 @@ async def bot_help(message, op_userfile):
 def check_server_ping():
     hostname = "gimley"  # example
     if platform == "win32":
-        response = os.system("ping -n 1 " + hostname)
+        response = os.system("ping -n 1 -w 100 " + hostname)
     else:
-        response = os.system("ping -c 1 " + hostname)
+        response = os.system("ping -c 1 -w 100" + hostname)
 
     # and then check the response...
     if response == 0:
@@ -37,24 +37,33 @@ async def server_status(message, send_message):
     if response:
         if send_message:
             rconPwd = open("rconPwd.cfg", "r").readline().strip("\n")
-            with Client('gimley', 25575, passwd=rconPwd) as client:
 
-                server_ip = "stockimageshark.co.uk:25565"
-                seed = client.seed
-                Clist = client.list()
-                response = f"```yaml\n" \
-                           f"Host: %s\n" \
-                           f"Status: Online\n" \
-                           f"World seed: %s\n" \
-                           f"Players: %s/%s\n\n" \
-                           f"Players Online:\n" \
-                           f"" % (server_ip, seed, str(Clist["online"]), str(Clist['max']))
+            server_ip = "stockimageshark.co.uk:25565"
 
-                for element in Clist["players"]:
-                    response += element['name']
+            response = f"```yaml\n" \
+                       f"Host: %s\n" \
+                       f"Server Status: Online\n" \
+                       f"---------------------------------\n" % server_ip
 
-                response += "```"
-                await message.channel.send(response)
+            try:
+                with Client('gimley', 25575, passwd=rconPwd) as client:
+
+                    seed = client.seed
+                    c_list = client.list()
+
+                    response += f"\nMinecraft Status: Online\n" \
+                                f"World seed: %s\n" \
+                                f"Players: %s/%s\n\n" \
+                                f"Players Online:\n" \
+                                f"" % (seed, str(c_list["online"]), str(c_list['max']))
+
+                    for element in c_list["players"]:
+                        response += element['name']
+            except:
+                response += f"\nMinecraft Status: Offline"
+
+            response += "```"
+            await message.channel.send(response)
         #
         return True
     else:
