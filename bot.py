@@ -11,7 +11,9 @@ import Commands
 logging.basicConfig(filename="log.txt", level=logging.DEBUG, filemode="w")
 
 # Global Variables
-client = discord.Client()
+
+intents = discord.Intents.all()
+client = discord.Client(intents=intents)
 TOKEN = ""
 BOT_PREFIX = ""
 
@@ -27,19 +29,10 @@ class Switcher(object):
         return Commands.bot_help(message)
 
     def status(self, message, args):
-        return message.channel.send("Bot is Online.")
+        return Commands.server_status(message, True)
 
-    def roll(self, message, args):
-        return Commands.roll_dice(message, args)
-
-    def flip(self, message, args):
-        return Commands.flip_coin(message)
-
-    def teams(self, message, args):
-        return Commands.team_gen(message, args)
-
-    def ip(self, message, args):
-        return Commands.get_ip(message)
+    def start_server(self, message, args):
+        return Commands.start_server(message)
 
     def announce(self, message, args):
         return Commands.announce(message, args)
@@ -89,7 +82,6 @@ async def on_message(message):
     if author != client.user and BOT_PREFIX in message.content:
         o_args[0] = o_args[0].replace(BOT_PREFIX, "")
         args = []
-
         for arg in o_args:
             if regex.search("[A-Z]+|[a-z]+|\d+", arg):
                 args.append(arg)

@@ -1,0 +1,10 @@
+WARNING:discord.client:PyNaCl is not installed, voice will NOT be supported
+DEBUG:discord.client:on_ready has successfully been registered as an event
+DEBUG:discord.client:on_member_join has successfully been registered as an event
+DEBUG:discord.client:on_guild_join has successfully been registered as an event
+DEBUG:discord.client:on_message has successfully been registered as an event
+INFO:root:Bot token 'MTA0MzE1ODI4MDYxODM3NzI2Ng.Ged0tV.OqpQL3tgBu20VS0-gsfZFejegqKw0_CyfsplwE' and prefix 'gimley' are set
+DEBUG:asyncio:Using proactor: IocpProactor
+INFO:discord.client:logging in using static token
+INFO:discord.gateway:Shard ID None has connected to Gateway (Session ID: b5e3490078811ec55e4b0f2fee158978).
+INFO:root:Bot is Ready
