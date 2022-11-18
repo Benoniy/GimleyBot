@@ -38,27 +38,28 @@ async def server_status(message, send_message):
         if send_message:
             rconPwd = open("rconPwd.cfg", "r").readline().strip("\n")
 
-            server_ip = "stockimageshark.co.uk:25565"
+
 
             response = f"```yaml\n" \
-                       f"Host: %s\n" \
                        f"Server Status: Online\n" \
-                       f"---------------------------------\n" % server_ip
+                       f"---------------------------------\n"
 
             try:
                 with Client('gimley', 25575, passwd=rconPwd) as client:
 
                     seed = client.seed
                     c_list = client.list()
+                    server_ip = "stockimageshark.co.uk:25565"
 
                     response += f"\nMinecraft Status: Online\n" \
+                                f"Hostname: %s\n" \
                                 f"World seed: %s\n" \
                                 f"Players: %s/%s\n\n" \
                                 f"Players Online:\n" \
-                                f"" % (seed, str(c_list["online"]), str(c_list['max']))
+                                f"" % (server_ip, seed, str(c_list["online"]), str(c_list['max']))
 
                     for element in c_list["players"]:
-                        response += element['name']
+                        response += element['name'] + "\n"
             except:
                 response += f"\nMinecraft Status: Offline"
 
