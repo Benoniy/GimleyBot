@@ -36,14 +36,35 @@ async def server_status(message, send_message):
     # and then check the response...
     if response:
         if send_message:
-            await message.channel.send("Server is up")
-            with Client('gimley', 25575, passwd='pooppoop') as client:
-                await message.channel.send(client.list())
+            rconPwd = open("rconPwd.cfg", "r").readline().strip("\n")
+            with Client('gimley', 25575, passwd=rconPwd) as client:
+
+                server_ip = "stockimageshark.co.uk:25565"
+                seed = client.seed
+                Clist = client.list()
+                response = f"```yaml\n" \
+                           f"Host: %s\n" \
+                           f"Status: Online\n" \
+                           f"World seed: %s\n" \
+                           f"Players: %s/%s\n\n" \
+                           f"Players Online:\n" \
+                           f"" % (server_ip, seed, str(Clist["online"]), str(Clist['max']))
+
+                for element in Clist["players"]:
+                    response += element['name']
+
+                response += "```"
+                await message.channel.send(response)
         #
         return True
     else:
         if send_message:
-            await message.channel.send("Server is down")
+            response = f"```yaml\n" \
+                       f"Status: Offline\n"
+
+            response += "```"
+            await message.channel.send(response)
+
         return False
 
 

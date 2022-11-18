@@ -49,17 +49,16 @@ async def on_ready():
 
 async def presence_task():
     while True:
-        # if Commands.check_server_ping():
-        #     await client.change_presence(status=discord.Status.online,
-        #                                  activity=discord.Activity(
-        #                                      type=discord.ActivityType.playing,
-        #                                      name="Server is running :)"))
-        # else:
-        #     await client.change_presence(status=discord.Status.do_not_disturb,
-        #                                  activity=discord.Activity(
-        #                                      type=discord.ActivityType.playing,
-        #                                      name="Server is not running :("))
-        await client.change_presence(activity=discord.Game(name="Anything You Want"))
+        if Commands.check_server_ping():
+            await client.change_presence(status=discord.Status.online,
+                                         activity=discord.Activity(
+                                             type=discord.ActivityType.playing,
+                                             name="Server is running :)"))
+        else:
+            await client.change_presence(status=discord.Status.do_not_disturb,
+                                         activity=discord.Activity(
+                                             type=discord.ActivityType.playing,
+                                             name="Server is not running :("))
         await asyncio.sleep(10)
 
 
@@ -68,15 +67,18 @@ async def on_message(message):
     """  This is run when a message is received on any channel """
     author = message.author
     o_args = message.content.split(' ')
-    if author != client.user and BOT_PREFIX in message.content:
+    if author != client.user and o_args[0] == BOT_PREFIX:
+
         o_args[0] = o_args[0].replace(BOT_PREFIX, "")
         args = []
         for arg in o_args:
             if regex.search("[A-Z]+|[a-z]+|\d+", arg):
                 args.append(arg)
 
-        command = args[0].lower()
-        del args[0]
+        command = "help"
+        if len(args) > 0:
+            command = args[0].lower()
+            del args[0]
 
         if command == "status":
             await Commands.server_status(message, True)
@@ -88,8 +90,7 @@ async def on_message(message):
             await Commands.add_op_user(message, args, OP_USERFILE)
         elif command == "remove_op":
             await Commands.remove_op_user(message, args, OP_USERFILE)
-        else:
-            await Commands.bot_help(message, OP_USERFILE)
+
 
 @client.event
 async def on_member_join(member):
