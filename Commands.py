@@ -1,5 +1,6 @@
 import os
 from sys import platform
+from mcipc.rcon.je import Biome, Client
 
 
 async def bot_help(message, op_userfile):
@@ -36,6 +37,9 @@ async def server_status(message, send_message):
     if response:
         if send_message:
             await message.channel.send("Server is up")
+            with Client('gimley', 25575, passwd='pooppoop') as client:
+                await message.channel.send(client.list())
+        #
         return True
     else:
         if send_message:

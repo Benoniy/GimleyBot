@@ -49,16 +49,17 @@ async def on_ready():
 
 async def presence_task():
     while True:
-        if Commands.check_server_ping():
-            await client.change_presence(status=discord.Status.online,
-                                         activity=discord.Activity(
-                                             type=discord.ActivityType.playing,
-                                             name="Server is running :)"))
-        else:
-            await client.change_presence(status=discord.Status.do_not_disturb,
-                                         activity=discord.Activity(
-                                             type=discord.ActivityType.playing,
-                                             name="Server is not running :("))
+        # if Commands.check_server_ping():
+        #     await client.change_presence(status=discord.Status.online,
+        #                                  activity=discord.Activity(
+        #                                      type=discord.ActivityType.playing,
+        #                                      name="Server is running :)"))
+        # else:
+        #     await client.change_presence(status=discord.Status.do_not_disturb,
+        #                                  activity=discord.Activity(
+        #                                      type=discord.ActivityType.playing,
+        #                                      name="Server is not running :("))
+        await client.change_presence(activity=discord.Game(name="Anything You Want"))
         await asyncio.sleep(10)
 
 
