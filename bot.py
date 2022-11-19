@@ -59,7 +59,7 @@ async def presence_task():
                                          activity=discord.Activity(
                                              type=discord.ActivityType.playing,
                                              name="Server is not running :("))
-        await asyncio.sleep(5)
+        await asyncio.sleep(15)
 
 
 @client.event

@@ -1,6 +1,6 @@
 import os
 from sys import platform
-from mcipc.rcon.je import Biome, Client
+from rcon import Client
 
 
 async def bot_help(message, op_userfile):
@@ -30,6 +30,10 @@ def check_server_ping():
         return False
 
 
+def remove_non_ascii(string):
+    return ''.join(char for char in string if ord(char) < 128)
+
+
 async def server_status(message, send_message):
     response = check_server_ping()
 
@@ -47,19 +51,26 @@ async def server_status(message, send_message):
             try:
                 with Client('gimley', 25575, passwd=rconPwd) as client:
 
-                    seed = client.seed
-                    c_list = client.list()
+                    seed = client.run('seed')[7:-2]
+
                     server_ip = "stockimageshark.co.uk:25565"
+
+                    players = remove_non_ascii(client.run('list')).replace('6defaultr:', '').replace(",", "").strip(
+                        "\n").split(" ")
+                    current_players = players[2][1:-1]
+                    max_players = players[6][1:-1]
+                    del players[0:9]
 
                     response += f"\nMinecraft Status: Online\n" \
                                 f"Hostname: %s\n" \
                                 f"World seed: %s\n" \
                                 f"Players: %s/%s\n\n" \
                                 f"Players Online:\n" \
-                                f"" % (server_ip, seed, str(c_list["online"]), str(c_list['max']))
+                                f"" % (server_ip, seed, current_players, max_players)
 
-                    for element in c_list["players"]:
-                        response += element['name'] + "\n"
+                    for player in players:
+                        p = player[1:-2]
+                        response += p + "\n"
             except:
                 response += f"\nMinecraft Status: Offline"
 
