@@ -35,44 +35,54 @@ def remove_non_ascii(string):
     return ''.join(char for char in string if ord(char) < 128)
 
 
+def get_mc_server_details():
+    rconPwd = open("rconPwd.cfg", "r").readline().strip("\n")
+    online = False
+    response = ""
+    try:
+        with Client('gimley', 25575, passwd=rconPwd) as client:
+
+            seed = client.run('seed')[7:-2]
+
+            server_ip = "stockimageshark.co.uk:25565"
+
+            players = remove_non_ascii(client.run('list')).replace('6defaultr:', '').replace(",", "").strip(
+                "\n").split(" ")
+            current_players = players[2][1:-1]
+            max_players = players[6][1:-1]
+            del players[0:9]
+
+            response += f"\nMinecraft Status: Online\n" \
+                        f"Hostname: %s\n" \
+                        f"World seed: %s\n" \
+                        f"Players: %s/%s\n\n" \
+                        f"" % (server_ip, seed, current_players, max_players)
+
+            online = True
+            if int(current_players) > 0:
+                response += f"Players Online:\n"
+                for player in players:
+                    p = player[1:-2]
+                    response += p + "\n"
+    except:
+        response += f"\nMinecraft Status: Offline"
+
+    return {"status": online, "details": response}
+
+
 async def server_status(message, send_message):
     response = check_server_ping()
 
     # and then check the response...
     if response:
         if send_message:
-            rconPwd = open("rconPwd.cfg", "r").readline().strip("\n")
+
 
             response = f"```yaml\n" \
                        f"Server Status: Online\n" \
                        f"---------------------------------\n"
 
-            try:
-                with Client('gimley', 25575, passwd=rconPwd) as client:
-
-                    seed = client.run('seed')[7:-2]
-
-                    server_ip = "stockimageshark.co.uk:25565"
-
-                    players = remove_non_ascii(client.run('list')).replace('6defaultr:', '').replace(",", "").strip(
-                        "\n").split(" ")
-                    current_players = players[2][1:-1]
-                    max_players = players[6][1:-1]
-                    del players[0:9]
-
-                    response += f"\nMinecraft Status: Online\n" \
-                                f"Hostname: %s\n" \
-                                f"World seed: %s\n" \
-                                f"Players: %s/%s\n\n" \
-                                f"" % (server_ip, seed, current_players, max_players)
-
-                    if int(current_players) > 0:
-                        response += f"Players Online:\n"
-                        for player in players:
-                            p = player[1:-2]
-                            response += p + "\n"
-            except:
-                response += f"\nMinecraft Status: Offline"
+            response += get_mc_server_details()["details"]
 
             response += "```"
             await message.channel.send(response)
