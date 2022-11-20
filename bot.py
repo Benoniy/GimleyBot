@@ -43,7 +43,10 @@ async def on_ready():
     """ Set Discord Status """
     logging.info("Bot is Ready")
     print("Bot is Ready")
-
+    await client.change_presence(status=discord.Status.idle,
+                                 activity=discord.Activity(
+                                     type=discord.ActivityType.playing,
+                                     name="Starting bot!"))
     await presence_task()
 
 
