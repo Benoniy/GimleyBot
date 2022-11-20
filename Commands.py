@@ -1,16 +1,17 @@
 import os
 from sys import platform
 from rcon import Client
+from datetime import datetime
 
 
 async def bot_help(message, op_userfile):
     """ Provides a list of commands to the user """
-    response = "`status` - Shows the status of "\
+    response = "`status` - Shows the status of " \
                "the server\n"
 
     if str(message.author) in get_op_users(op_userfile):
-        response += "`start_server` - Will start the server\n"\
-                    "`add_op` - Adds an op user, grants access to commands like start_server\n"\
+        response += "`start_server` - Will start the server\n" \
+                    "`add_op` - Adds an op user, grants access to commands like start_server\n" \
                     "`remove_op` - Removes an op user\n"
 
     await message.channel.send(response)
@@ -42,8 +43,6 @@ async def server_status(message, send_message):
         if send_message:
             rconPwd = open("rconPwd.cfg", "r").readline().strip("\n")
 
-
-
             response = f"```yaml\n" \
                        f"Server Status: Online\n" \
                        f"---------------------------------\n"
@@ -65,12 +64,13 @@ async def server_status(message, send_message):
                                 f"Hostname: %s\n" \
                                 f"World seed: %s\n" \
                                 f"Players: %s/%s\n\n" \
-                                f"Players Online:\n" \
                                 f"" % (server_ip, seed, current_players, max_players)
 
-                    for player in players:
-                        p = player[1:-2]
-                        response += p + "\n"
+                    if int(current_players) > 0:
+                        response += f"Players Online:\n"
+                        for player in players:
+                            p = player[1:-2]
+                            response += p + "\n"
             except:
                 response += f"\nMinecraft Status: Offline"
 
@@ -93,9 +93,14 @@ async def start_server(message):
     if await server_status(message, False):
         await message.channel.send("Server is already running!")
     else:
-        await message.channel.send("Starting server!")
-        if platform != "win32":
-            os.system('wakeonlan 40:16:7e:ad:19:bc')
+        now = datetime.now().hour
+        if 1 < now < 5:
+            await message.channel.send("No go to sleep!")
+        else:
+            await message.channel.send("Starting server!")
+            if platform != "win32":
+                pass
+                os.system('wakeonlan 40:16:7e:ad:19:bc')
 
 
 def get_op_users(op_userfile):
@@ -153,4 +158,3 @@ async def remove_op_user(message, args, op_userfile):
         file.close()
     else:
         await message.channel.send("You do not have permission to add op users!")
-
