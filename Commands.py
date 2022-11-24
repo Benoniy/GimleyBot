@@ -23,7 +23,7 @@ def check_server_ping():
         if platform == "win32":
             response = os.system("ping -n 1 -w 100 " + hostname)
         else:
-            response = os.system("ping -c 1 -W 100 " + hostname)
+            response = os.system("ping -c 1 -W 1 " + hostname)
     except:
         response = 0
 
