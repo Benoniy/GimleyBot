@@ -9,7 +9,7 @@ async def bot_help(message, op_userfile):
     response = "```yaml\n" \
                "Standard_Commands:\n" \
                "    status: Shows the status of " \
-               "    the server\n"
+               "the server\n"
 
     if str(message.author) in get_op_users(op_userfile):
         response += "--------------------------------------------\n\n" \
