@@ -6,14 +6,20 @@ from datetime import datetime
 
 async def bot_help(message, op_userfile):
     """ Provides a list of commands to the user """
-    response = "`status` - Shows the status of " \
-               "the server\n"
+    response = "```yaml\n" \
+               "Standard_Commands:\n" \
+               "    status: Shows the status of " \
+               "    the server\n"
 
     if str(message.author) in get_op_users(op_userfile):
-        response += "`start_server` - Will start the server\n" \
-                    "`add_op` - Adds an op user, grants access to commands like start_server\n" \
-                    "`remove_op` - Removes an op user\n"
+        response += "--------------------------------------------\n\n" \
+                    "OP_Commands:\n" \
+                    "   start_server: Will start the server\n" \
+                    "   add_op: Adds an op user, grants access to commands like start_server\n" \
+                    "   remove_op: Removes an op user\n" \
+                    "   save: Saves the game\n"
 
+    response += "```"
     await message.channel.send(response)
 
 
@@ -171,3 +177,26 @@ async def remove_op_user(message, args, op_userfile):
         file.close()
     else:
         await message.channel.send("You do not have permission to add op users!")
+
+
+async def save(message):
+    rconPwd = open("rconPwd.cfg", "r").readline().strip("\n")
+
+    try:
+        with Client('gimley', 25575, passwd=rconPwd) as client:
+            client.run('save-all')
+    except:
+        pass
+
+
+async def unrecognised_command(message):
+    await message.channel.send("no")
+
+
+async def stop_server(message):
+    rconPwd = open("rconPwd.cfg", "r").readline().strip("\n")
+    try:
+        with Client('gimley', 25575, passwd=rconPwd) as client:
+            client.run('stop')
+    except:
+        pass

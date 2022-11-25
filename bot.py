@@ -75,23 +75,22 @@ async def presence_task():
 async def on_message(message):
     """  This is run when a message is received on any channel """
     author = message.author
-    o_args = message.content.split(' ')
-    print(o_args[0])
-    print(BOT_PREFIX)
-    if author != client.user and o_args[0] == BOT_PREFIX:
+    args = message.content.split(' ')
 
-        o_args[0] = o_args[0].replace(BOT_PREFIX, "")
-        args = []
-        for arg in o_args:
-            if regex.search("[A-Z]+|[a-z]+|\d+", arg):
-                args.append(arg)
+    if author != client.user and args[0].lower() == BOT_PREFIX:
+
+        del args[0]
 
         command = "help"
+
+        print(args)
         if len(args) > 0:
             command = args[0].lower()
             del args[0]
 
+        print(command)
         if command == "status":
+            print("made it here")
             await Commands.server_status(message, True)
         elif command == "help":
             await Commands.bot_help(message, OP_USERFILE)
@@ -101,6 +100,12 @@ async def on_message(message):
             await Commands.add_op_user(message, args, OP_USERFILE)
         elif command == "remove_op":
             await Commands.remove_op_user(message, args, OP_USERFILE)
+        elif command == "save":
+            await Commands.save(message)
+        # elif command == "stop_server":
+        #     await Commands.stop_server(message)
+        else:
+            await Commands.unrecognised_command(message)
 
 
 @client.event
