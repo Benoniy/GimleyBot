@@ -185,6 +185,7 @@ async def save(message):
     try:
         with Client('gimley', 25575, passwd=rconPwd) as client:
             client.run('save-all')
+            message.channel.send("Saved!")
     except:
         pass
 
