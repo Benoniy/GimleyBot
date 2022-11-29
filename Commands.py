@@ -1,8 +1,9 @@
 import os
+import re
 from sys import platform
 from rcon import Client
 from datetime import datetime
-
+from regex import regex
 
 async def bot_help(message, op_userfile):
     """ Provides a list of commands to the user """
@@ -71,7 +72,14 @@ def get_mc_server_details():
             if int(current_players) > 0:
                 response += f"Players Online:\n"
                 for player in players:
-                    p = player[1:-2]
+                    print(player)
+                    if re.search("4.*rf$", player):
+                        p = player[1:-2]
+                    elif re.search("^[^4].*f$", player):
+                        p = player[:-1]
+                    else:
+                        p = player
+
                     response += p + "\n"
     except:
         response += f"\nMinecraft Status: Offline"

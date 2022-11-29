@@ -83,14 +83,11 @@ async def on_message(message):
 
         command = "help"
 
-        print(args)
         if len(args) > 0:
             command = args[0].lower()
             del args[0]
 
-        print(command)
         if command == "status":
-            print("made it here")
             await Commands.server_status(message, True)
         elif command == "help":
             await Commands.bot_help(message, OP_USERFILE)
